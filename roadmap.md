@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [ ] Correct Lovable connection detection and prevent Google Connect from replacing the current account.
 - [ ] Verify new-account creation and password email on canonical ops host — requires managed privileged Cloud account creation on that host and an approved recipient for the end-to-end email check.
 
 ## Done

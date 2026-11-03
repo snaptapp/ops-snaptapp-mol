@@ -9,13 +9,20 @@ export interface PendingLink {
 
 export type LinkFailure = "load" | "provider" | "different_account" | "not_linked" | "unlink";
 
+/** Managed Lovable identities use the custom OIDC provider identifier. */
+export function matchesSignInProvider(identityProvider: string, provider: string): boolean {
+  if (provider === "lovable") return identityProvider === "custom:lovable" || identityProvider === "lovable";
+  if (provider === "azure" || provider === "microsoft") return identityProvider === "azure" || identityProvider === "microsoft";
+  return identityProvider === provider;
+}
+
 /** Plain-language message for a failed connect/disconnect. Never returns raw codes alone. */
 export function linkErrorMessage(kind: LinkFailure, detail: string, provider = "That method", expectedEmail = ""): string {
   const raw = detail.toLowerCase();
   if (raw.includes("manual_linking_disabled") || raw.includes("manual linking is disabled")) {
     return kind === "unlink"
       ? "Disconnecting sign-in methods isn't turned on for this portal yet, so nothing was removed."
-      : `${provider} couldn't be connected directly. Use an account with the same email${expectedEmail ? ` (${expectedEmail})` : ""}.`;
+      : `Connecting ${provider} to an existing account is disabled in this portal. Your current account is still signed in; nothing was connected or changed.`;
   }
   switch (kind) {
     case "load":

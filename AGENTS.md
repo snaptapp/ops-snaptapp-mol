@@ -16,6 +16,7 @@
 10. **Agent integrations:** `/mcp` uses managed OAuth with the OAuth client claim required; each tool rechecks live Cloud admin identity and roles before lazy-loading Firebase read helpers. Keep tools read-only and project safe summaries, because Firebase service credentials do not provide caller authorization. Browser tools stay in their owning screen with fail-open static telemetry.
 11. **Auth presentation:** Keep auth-screen layout in `src/admin/auth.css`; distinguish successful identity sign-in from missing portal permissions, and recheck access through the protected portal gate rather than relaxing authorization.
 12. **Admin onboarding:** Account creation lazy-loads the privileged Cloud client only after live admin middleware; role grants use the caller-authorized RPC, and password setup uses email recovery without sharing temporary passwords. External hosts without managed account-creation credentials fail closed for new accounts.
+13. **Account identities:** Normalize managed identity provider identifiers for display; never use managed OAuth sign-in as an account-link operation, because it can replace the current admin session. Fail clearly without redirecting when linking is unavailable.
 
 
 ## Essential Commands

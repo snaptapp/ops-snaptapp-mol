@@ -4,8 +4,7 @@ import type { UserIdentity } from "@supabase/supabase-js";
 import { Badge, Button, Card, CardTitle } from "@/index";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHead } from "@/admin/AdminShell";
-import { lovable } from "@/integrations/lovable";
-import { linkErrorMessage, PENDING_LINK_KEY, type PendingLink } from "@/lib/account-linking";
+import { linkErrorMessage, matchesSignInProvider, PENDING_LINK_KEY } from "@/lib/account-linking";
 
 export const Route = createFileRoute("/admin/account")({
   ssr: false,
@@ -41,46 +40,36 @@ function AccountPage() {
     const { data, error: err } = await supabase.auth.getUserIdentities();
     if (err) setError(linkErrorMessage("load", err.message));
     else setIdentities(data?.identities ?? []);
-    // Finish a pending connect: same account means it linked; a different account means it didn't.
-    const raw = window.sessionStorage.getItem(PENDING_LINK_KEY);
-    if (!raw) return;
+    // Discard legacy sign-in-as-link markers; never sign out the current account.
     window.sessionStorage.removeItem(PENDING_LINK_KEY);
-    const pending = JSON.parse(raw) as PendingLink;
-    const { data: userData } = await supabase.auth.getUser();
-    const label = PROVIDERS.find((p) => p.id === pending.provider)?.label ?? pending.provider;
-    if (userData.user && userData.user.id !== pending.userId) {
-      setError(linkErrorMessage("different_account", userData.user.email ?? "", label, pending.email));
-      await supabase.auth.signOut();
-      return;
-    }
-    const linked = (data?.identities ?? []).some((i) => i.provider === pending.provider);
-    if (linked) setNotice(`${label} is now connected.`);
-    else setError(linkErrorMessage("not_linked", "", label, pending.email));
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+    const { data } = supabase.auth.onAuthStateChange(() => { window.setTimeout(() => void load(), 0); });
+    return () => data.subscription.unsubscribe();
+  }, [load]);
 
   async function link(provider: "google" | "apple" | "microsoft" | "lovable") {
     setBusy(provider); setError(null); setNotice(null);
     const label = PROVIDERS.find((p) => p.id === (provider === "microsoft" ? "azure" : provider))?.label ?? provider;
     try {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) throw new Error("You're signed out. Sign in again first.");
-      const pending: PendingLink = { provider: provider === "microsoft" ? "azure" : provider, userId: data.user.id, email: data.user.email ?? "" };
-      window.sessionStorage.setItem(PENDING_LINK_KEY, JSON.stringify(pending));
-      const result = await lovable.auth.signInWithOAuth(provider, {
-        redirect_uri: new URL("/auth?next=/admin/account", window.location.origin).href,
-      });
-      if (result.error) {
-        window.sessionStorage.removeItem(PENDING_LINK_KEY);
-        setError(linkErrorMessage("provider", result.error.message, label));
-        setBusy(null);
+      if (provider === "lovable") {
+        setError("Lovable supports sign-in, but connecting it to another existing account isn't available. Your current sign-in hasn't changed.");
         return;
       }
-      if (!result.redirected) { await load(); setBusy(null); }
+      // Check the real linking endpoint without navigating or replacing the session.
+      // Managed OAuth's signInWithOAuth is not a link operation.
+      const { error: linkError } = await supabase.auth.linkIdentity({
+        provider: provider === "microsoft" ? "azure" : provider,
+        options: { skipBrowserRedirect: true, redirectTo: new URL("/auth", window.location.origin).href },
+      });
+      setError(linkError
+        ? linkErrorMessage("provider", linkError.message, label)
+        : `${label} account linking through managed sign-in isn't available yet. Your current sign-in hasn't changed.`);
     } catch (e) {
-      window.sessionStorage.removeItem(PENDING_LINK_KEY);
       setError(linkErrorMessage("provider", e instanceof Error ? e.message : String(e), label));
+    } finally {
       setBusy(null);
     }
   }
@@ -100,13 +89,12 @@ function AccountPage() {
       <PageHead title="ACCOUNT SETTINGS" />
       <Card>
         <CardTitle>SIGN-IN METHODS</CardTitle>
-        <p className="admin-auth-copy">Connect every way you want to sign in to this admin account.</p>
-        <p className="admin-auth-copy">Connect works when the Google, Apple, Microsoft or Lovable account uses the same email as this admin account ({"you'll"} sign in with it once).</p>
+        <p className="admin-auth-copy">Additional account linking is currently unavailable. Your existing connected methods still work for sign-in.</p>
         {error ? <p className="admin-error" role="alert">{error}</p> : null}
         {notice ? <p className="admin-auth-notice" role="status">{notice}</p> : null}
         <ul className="admin-account-methods">
           {PROVIDERS.map((p) => {
-            const identity = identities.find((i) => i.provider === p.id);
+            const identity = identities.find((i) => matchesSignInProvider(i.provider, p.id));
             return (
               <li key={p.id}>
                 <span>{p.label}</span>
@@ -114,7 +102,7 @@ function AccountPage() {
                 {p.id === "email" ? null : identity ? (
                   <Button variant="ghost" size="sm" disabled={busy !== null} onClick={() => void unlink(identity)}>DISCONNECT</Button>
                 ) : (
-                  <Button size="sm" disabled={busy !== null} onClick={() => void link(p.id === "azure" ? "microsoft" : p.id)}>{busy === p.id ? "CONNECTING…" : "CONNECT"}</Button>
+                  <Button size="sm" disabled={busy !== null} onClick={() => void link(p.id === "azure" ? "microsoft" : p.id)}>{busy === (p.id === "azure" ? "microsoft" : p.id) ? "CHECKING…" : "CONNECT"}</Button>
                 )}
               </li>
             );
