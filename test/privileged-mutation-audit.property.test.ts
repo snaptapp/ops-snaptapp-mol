@@ -70,7 +70,7 @@ import {
 type CapturedValidator = (data: unknown) => unknown;
 type CapturedHandler = (input: {
   data: never;
-  context: { user: AdminUser };
+  context: { user: AdminUser; cloud: { rpc: (name: string, args: Record<string, unknown>) => Promise<{ error: null }> } };
 }) => Promise<unknown>;
 
 interface CapturedServerFn {
