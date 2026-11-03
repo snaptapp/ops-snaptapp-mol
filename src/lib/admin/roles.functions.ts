@@ -18,7 +18,7 @@ export const listAdminUsers = createServerFn({ method: "GET" })
 
 export const setAdminRole = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator((data) => z.object({ uid: z.string().uuid(), admin: z.boolean() }).parse(data))
+  .inputValidator((data) => z.object({ uid: z.string().min(1).uuid(), admin: z.boolean() }).parse(data))
   .handler(async ({ data, context }) => {
     const caller = context.user;
     if (caller.uid === data.uid && !data.admin) {

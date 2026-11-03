@@ -7,7 +7,7 @@ import "@/admin/admin.css";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({ access: search["access"] === "denied" ? "denied" : undefined }),
+  validateSearch: (search: Record<string, unknown>): { access?: string } => ({ access: search["access"] === "denied" ? "denied" : undefined }),
   head: () => ({
     meta: [
       { title: "More or Less — Admin Sign In" },
