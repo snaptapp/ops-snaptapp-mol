@@ -1,5 +1,8 @@
 # Roadmap
 
+## Current
+- [ ] Grant the approved Lovable account admin access and replace the cramped access-denied screen; verify signed-in portal access.
+
 ## Done
 - [x] Add protected read-only MCP fact-bank and daily-pack summaries plus browser-local navigation (WebMCP Tools); manifest extracted, 15 security tests passed, consent login return and anonymous 401 verified.
 - [x] Enable Lovable sign-in alongside Cloud admin access.
