@@ -23,7 +23,7 @@ describe("MCP admin authorization", () => {
     expect(authorize).toHaveBeenCalledWith("verified-oauth-token");
   });
   it("fails closed when the live role check denies or is unavailable", async () => {
-    authorize.mockRejectedValue(new Error("private provider details"));
+    authorize.mockImplementation(async () => { throw new Error("private provider details"); });
     await expect(requireMcpAdmin(context(true, "token"))).rejects.toMatchObject({ message: "A confirmed, currently authorized admin account is required." });
   });
 });
