@@ -108,3 +108,12 @@ export const fetchReportAudit = createServerFn({ method: "POST" })
       .filter((l) => l.targetType === "report" && l.targetId === data.reportId)
       .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
   });
+
+/** Batch auto-triage of the pending queue. Dry run never writes. */
+export const runModQueueAutoTriage = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .inputValidator((data: unknown) => z.object({ dryRun: z.boolean() }).parse(data))
+  .handler(async ({ data }) => {
+    const { runModQueueTriage } = await import("./mod-triage.server");
+    return runModQueueTriage({ dryRun: data.dryRun });
+  });
