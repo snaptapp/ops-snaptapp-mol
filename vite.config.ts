@@ -5,6 +5,7 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { componentTagger } from "lovable-tagger";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/tanstack/vite";
 
 export default defineConfig(({ command, mode }) => {
   // Cloudflare Workers plugin only on build (produces the worker output);
@@ -28,6 +29,7 @@ export default defineConfig(({ command, mode }) => {
       },
     },
     plugins: [
+      mcpPlugin(),
       tsConfigPaths({ projects: ["./tsconfig.json"] }),
       ...(useCloudflare ? [cloudflare({ viteEnvironment: { name: "ssr" } })] : []),
       tanstackStart(),
