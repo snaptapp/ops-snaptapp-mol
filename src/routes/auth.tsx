@@ -171,12 +171,6 @@ function AuthPage() {
                 ? "Sign in"
                 : "Sign up"}
           </Button>
-          {mode === "sign-in" ? <Button type="button" variant="ghost" disabled={busy || !email} onClick={() => {
-            setBusy(true); setError(null);
-            void supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth` }).then(({ error: resetError }) => {
-              if (resetError) setError(resetError.message); else setNotice("Password reset email sent — check your inbox.");
-            }).finally(() => setBusy(false));
-          }}>Forgot password?</Button> : null}
           <Button variant="ghost"
             type="button"
             className="admin-reset-link"
