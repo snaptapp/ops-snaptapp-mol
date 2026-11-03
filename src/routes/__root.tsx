@@ -2,15 +2,28 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { initAmplitude } from "@/lib/amplitude";
 import { AdminAuthProvider } from "@/admin/auth";
 
 import appCss from "../styles.css?url";
+
+// The linked Google Analytics connection supplies the measurement ID; the
+// literal fallback keeps tracking alive if the link is removed.
+const GA_MEASUREMENT_ID =
+  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY as string | undefined)?.trim() ||
+  "G-7QMJL9732Z";
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
