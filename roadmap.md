@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Done
+- [ ] Connect Cloud accounts to admin pages with server-verified admin roles and no Firebase sign-in.
 - [x] Lovable Cloud email/password auth for admin team (`/auth` page + root session listener) — verified in browser
 - [x] Cloudflare API reconnected in the new workspace (connection std_01m6g2m9pbehzryvxd5rm50kcw, gateway-backed)
 
