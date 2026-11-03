@@ -451,13 +451,13 @@ export function CorrectedReplacementForm({
       return result;
     },
     onSuccess: async (result) => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "corrected_replacement", outcome: "succeeded" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "corrected_replacement", outcome: "succeeded" });
       setCommitted(result);
       await queryClient.invalidateQueries({ queryKey: ["facts"] });
       onCommitted?.(result);
     },
     onError: () => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "corrected_replacement", outcome: "failed" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "corrected_replacement", outcome: "failed" });
     },
   });
 
@@ -910,12 +910,12 @@ export function FactEditor({
         },
       }),
     onSuccess: async () => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "edit", outcome: "succeeded" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "edit", outcome: "succeeded" });
       await invalidate();
       onDone();
     },
     onError: () => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "edit", outcome: "failed" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "edit", outcome: "failed" });
     },
   });
 
@@ -928,14 +928,14 @@ export function FactEditor({
         },
       }),
     onSuccess: async (_result, next) => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", {
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", {
         action_category: next === STATUS.retired ? "retire" : next === STATUS.disputed ? "dispute" : next === STATUS.active ? "reactivate" : "lifecycle_transition",
         outcome: "succeeded",
       });
       await invalidate();
     },
     onError: (_error, next) => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", {
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", {
         action_category: next === STATUS.retired ? "retire" : next === STATUS.disputed ? "dispute" : next === STATUS.active ? "reactivate" : "lifecycle_transition",
         outcome: "failed",
       });
@@ -1408,13 +1408,13 @@ export function NewFactForm({ onDone }: { onDone: () => void }) {
         },
       }),
     onSuccess: async () => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "create", outcome: "succeeded" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "create", outcome: "succeeded" });
       await queryClient.invalidateQueries({ queryKey: ["facts"] });
       setForm(EMPTY_DRAFT);
       onDone();
     },
     onError: () => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "create", outcome: "failed" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "create", outcome: "failed" });
     },
   });
 
@@ -2527,7 +2527,7 @@ export function ImportCsvModal({ onDone }: { onDone: () => void }) {
   const mutation = useMutation({
     mutationFn: () => bulkImport({ data: { facts: validFacts } }),
     onSuccess: (res) => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", {
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", {
         action_category: "import",
         outcome: res.successful ? "succeeded" : res.partialSuccess ? "partial_success" : "failed",
       });
@@ -2535,7 +2535,7 @@ export function ImportCsvModal({ onDone }: { onDone: () => void }) {
       queryClient.invalidateQueries({ queryKey: ["facts"] });
     },
     onError: () => {
-      window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "import", outcome: "failed" });
+      if (typeof window !== "undefined") window.__lovableEvents?.track?.("project.fact_lifecycle_action", { action_category: "import", outcome: "failed" });
     },
   });
 
