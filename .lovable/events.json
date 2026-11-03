@@ -41,6 +41,37 @@
         }
       }
     },
+    "project.admin_role_changed": {
+      "event_schema_version": 1,
+      "description": "A confirmed role-management request successfully granted or revoked administrator access, including Add Admin onboarding. Emitted after the role request succeeds, regardless of setup-email delivery. Contains only broad change type and successful outcome; no account data.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "change_type",
+          "outcome"
+        ],
+        "properties": {
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "grant",
+              "revoke"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "succeeded"
+            ]
+          }
+        }
+      }
+    },
     "project.analytics_summary_completed": {
       "event_schema_version": 1,
       "description": "The submitted insights request returned a non-empty AI summary.",
