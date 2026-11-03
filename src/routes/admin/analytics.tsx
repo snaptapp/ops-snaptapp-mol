@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, CardLabel, CardTitle } from "@/index";
 import { ErrorNote, PageHead } from "@/admin/AdminShell";
 import { fetchGameAnalytics, fetchLaunchAnalytics, fetchQuestionTelemetry, flagQuestionTelemetry } from "@/lib/admin/ops.functions";
-import { fetchSearchConsole, fetchSiteTraffic } from "@/lib/admin/site-analytics.functions";
+import { fetchSearchConsole } from "@/lib/admin/site-analytics.functions";
 import type { LaunchModeSummary } from "@/lib/admin/launch-analytics";
 
 export const Route = createFileRoute("/admin/analytics")({
@@ -292,56 +292,6 @@ function CategoryBreakdown({
   );
 }
 
-function SiteTraffic() {
-  const load = useServerFn(fetchSiteTraffic);
-  const query = useQuery({ queryKey: ["ga-site-traffic"], queryFn: () => load(), retry: false });
-  const data = query.data;
-  const maxUsers = data ? Math.max(1, ...data.days.map((day) => day.users)) : 1;
-  return (
-    <Card>
-      <CardTitle>Site traffic (Google Analytics)</CardTitle>
-      <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: "8px 0 0" }}>
-        Daily visitors to the snaptapp.us site over the last 28 days, from the linked Google Analytics account.
-      </p>
-      <ErrorNote error={query.error} />
-      {query.isLoading ? <p className="admin-empty">Loading site traffic…</p> : null}
-      {data ? (
-        <>
-          <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: "8px 0 0" }}>
-            Property: {data.property} · {data.totalSessions} sessions in 28 days
-          </p>
-          <div style={{ marginTop: "var(--ds-arena-space-3)" }}>
-            {data.days.map((day) => (
-              <div key={day.date} className="admin-bar-row">
-                <span className="admin-bar-row__name">{day.date}</span>
-                <span
-                  style={{
-                    display: "block",
-                    height: 8,
-                    borderRadius: 999,
-                    background: "var(--ds-arena-color-surface)",
-                    overflow: "hidden",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "block",
-                      height: "100%",
-                      width: `${(day.users / maxUsers) * 100}%`,
-                      background: "var(--ds-arena-color-purple)",
-                    }}
-                  />
-                </span>
-                <span style={{ textAlign: "right" }}>{day.users}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      ) : null}
-    </Card>
-  );
-}
-
 function SearchConsole() {
   const load = useServerFn(fetchSearchConsole);
   const query = useQuery({ queryKey: ["search-console-status"], queryFn: () => load(), retry: false });
@@ -534,7 +484,6 @@ function AnalyticsPage() {
           </Card>
         </>
       ) : null}
-      <SiteTraffic />
       <SearchConsole />
     </>
   );
