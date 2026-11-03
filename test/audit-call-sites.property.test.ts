@@ -539,6 +539,13 @@ const DYNAMIC_TARGET_IDS: Readonly<Record<string, Readonly<Record<string, Dynami
     },
   },
   "src/lib/admin/roles.functions.ts": {
+    uid: {
+      coverage: "documented",
+      reason:
+        "Admin onboarding obtains the target UID from the protected team roster or the " +
+        "Cloud Auth account creation response, then grants the role before auditing. " +
+        "test/admin-onboarding.test.ts verifies new and existing account audit targets.",
+    },
     "data.uid": {
       coverage: "schema-min-1",
       schemaField: "uid",
@@ -577,7 +584,7 @@ describe("Feature: admin-quality-gates-and-shared-contracts, Property 18: Every 
     expect(byFile.get("src/lib/admin/content.functions.ts")).toBeGreaterThanOrEqual(2);
     expect(byFile.get("src/lib/admin/ops.functions.ts")).toBeGreaterThanOrEqual(7);
     expect(byFile.get("src/lib/admin/ops.server.ts")).toBeGreaterThanOrEqual(5);
-    expect(byFile.get("src/lib/admin/roles.functions.ts")).toBe(1);
+    expect(byFile.get("src/lib/admin/roles.functions.ts")).toBe(2);
     expect(byFile.get("src/lib/admin/config.functions.ts")).toBe(1);
   });
 

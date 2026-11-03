@@ -132,6 +132,120 @@
           }
         }
       }
+    },
+    "project.remote_config_save_attempted": {
+      "event_schema_version": 1,
+      "description": "A validated remote configuration save is sent, with broad changed categories only.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "changed_categories",
+          "outcome"
+        ],
+        "properties": {
+          "changed_categories": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "topics",
+                "game_modes",
+                "access",
+                "custom_parameters",
+                "advertising"
+              ]
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "attempted"
+            ]
+          }
+        }
+      }
+    },
+    "project.remote_config_save_failed": {
+      "event_schema_version": 1,
+      "description": "The remote configuration save request failed, without sending error messages or configuration values.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "changed_categories",
+          "outcome"
+        ],
+        "properties": {
+          "changed_categories": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "topics",
+                "game_modes",
+                "access",
+                "custom_parameters",
+                "advertising"
+              ]
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "failed"
+            ]
+          }
+        }
+      }
+    },
+    "project.remote_config_saved": {
+      "event_schema_version": 1,
+      "description": "Remote configuration save returned successfully after server-side publication and read-back confirmation.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "changed_categories",
+          "outcome"
+        ],
+        "properties": {
+          "changed_categories": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "topics",
+                "game_modes",
+                "access",
+                "custom_parameters",
+                "advertising"
+              ]
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "saved"
+            ]
+          }
+        }
+      }
     }
   }
 }

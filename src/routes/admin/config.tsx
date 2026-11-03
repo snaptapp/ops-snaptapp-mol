@@ -333,6 +333,16 @@ function ConfigPage() {
     setSaveError(null);
     setSaveSuccess(false);
 
+    const changedCategories = [...new Set(changedSections.map((section) =>
+      section === "defaultTopics" || section === "variants" ? "topics"
+        : section === "modeVisibility" ? "game_modes"
+        : section === "allowedEmails" ? "access"
+        : section === "customParameters" ? "custom_parameters" : "advertising",
+    ))];
+    try {
+      window.__lovableEvents?.track?.("project.remote_config_save_attempted", { changed_categories: changedCategories, outcome: "attempted" });
+    } catch { /* Analytics must not interrupt publication. */ }
+
     try {
       const result = await saveConfig({
         data: {
@@ -354,9 +364,15 @@ function ConfigPage() {
       // is slow or served stale.
       queryClient.setQueryData(["remote-config-topics"], result);
       setSaveSuccess(true);
+      try {
+        window.__lovableEvents?.track?.("project.remote_config_saved", { changed_categories: changedCategories, outcome: "saved" });
+      } catch { /* Analytics must not interrupt a saved configuration. */ }
       setTimeout(() => setSaveSuccess(false), 4000);
     } catch (err: unknown) {
       setSaveError(err instanceof Error ? err.message : "Failed to publish Remote Config");
+      try {
+        window.__lovableEvents?.track?.("project.remote_config_save_failed", { changed_categories: changedCategories, outcome: "failed" });
+      } catch { /* Analytics must not interrupt error handling. */ }
     } finally {
       setIsSaving(false);
     }
