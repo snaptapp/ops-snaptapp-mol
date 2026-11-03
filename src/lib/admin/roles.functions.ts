@@ -1,15 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "./middleware";
+import type { AdminUserRecord } from "./roles.server";
+
+interface PortalAdminRow { uid: string; email: string | null; email_verified: boolean; created_at: string | null; last_sign_in_at: string | null; is_admin: boolean }
 
 export const listAdminUsers = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
-  .handler(async () => {
-    const { requireCloudAdmin } = await import("./cloud-auth.server");
-    const { client } = await requireCloudAdmin();
-    const { data, error } = await client.rpc("portal_admin_users");
+  .handler(async ({ context }) => {
+    const { data, error } = await context.cloud.rpc("portal_admin_users");
     if (error) throw new Error("Unable to load team accounts");
-    return (data ?? []).map((record) => ({
+    return ((data ?? []) as PortalAdminRow[]).map((record): AdminUserRecord => ({
       uid: record.uid, email: record.email, displayName: null,
       emailVerified: record.email_verified, disabled: false, mfaEnrolled: false,
       isAdmin: record.is_admin, createdAt: record.created_at, lastSignInAt: record.last_sign_in_at,

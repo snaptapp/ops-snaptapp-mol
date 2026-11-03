@@ -3,6 +3,8 @@ import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAdminAuth } from "@/admin/auth";
 import { Button, Card, CardTitle } from "@/index";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+import "@lovable.dev/cloud-auth-js/styles.css";
 import "@/admin/admin.css";
 
 export const Route = createFileRoute("/auth")({
@@ -68,6 +70,20 @@ function AuthPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function handleLovableSignIn() {
+    setBusy(true);
+    setError(null);
+    const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: `${window.location.origin}/auth` });
+    if (result.error) {
+      setError(result.error instanceof Error ? result.error.message : "Lovable sign-in failed.");
+      setBusy(false);
+      return;
+    }
+    if (result.redirected) return;
+    await navigate({ to: "/admin", replace: true });
+    setBusy(false);
   }
 
   async function handleSignOut() {
@@ -171,6 +187,7 @@ function AuthPage() {
                 ? "Sign in"
                 : "Sign up"}
           </Button>
+          <button type="button" className="lovable-auth-button" disabled={busy} onClick={() => void handleLovableSignIn()}>Continue with Lovable</button>
           <Button variant="ghost"
             type="button"
             className="admin-reset-link"
