@@ -80,7 +80,8 @@ gtag('config', '${GA_MEASUREMENT_ID}');`,
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pagePath = useRouterState({
-    select: (state) => state.location.pathname + state.location.search,
+    // location.search is a parsed params object; searchStr is the raw query string.
+    select: (state) => state.location.pathname + state.location.searchStr,
   });
   const firstRender = useRef(true);
 
