@@ -1,10 +1,8 @@
 # Roadmap
 
-## In progress
-- [ ] Lovable Cloud email/password auth for admin team (`/auth` page + root session listener) — page written, listener + build check remaining
-
-## New (workspace move)
-- [ ] Connect Cloudflare API in the new workspace (old workspace connections no longer linked)
+## Done
+- [x] Lovable Cloud email/password auth for admin team (`/auth` page + root session listener) — verified in browser
+- [x] Cloudflare API reconnected in the new workspace (connection std_01m6g2m9pbehzryvxd5rm50kcw, gateway-backed)
 
 ## Pending (approved, not started)
 - [ ] Grounded Mod Queue Auto-Triager (mod-triage.server.ts, runModQueueAutoTriage, reports.tsx toolbar)

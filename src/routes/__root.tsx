@@ -2,12 +2,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
+  useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import { initAmplitude } from "@/lib/amplitude";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
@@ -65,10 +67,20 @@ gtag('config', 'G-7QMJL9732Z');`,
 // /__component) render inside it, so any chrome leaks into every frame.
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   useEffect(() => {
     initAmplitude();
   }, []);
+
+  useEffect(() => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
