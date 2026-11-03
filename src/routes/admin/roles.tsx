@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Badge, Button, Card } from "@/index";
 import { useAdminAuth } from "@/admin/auth";
-import { listAdminUsers, setAdminRole } from "@/lib/admin/roles.functions";
+import { addAdminByEmail, listAdminUsers, setAdminRole } from "@/lib/admin/roles.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/roles")({
   head: () => ({ meta: [
@@ -28,6 +29,10 @@ function RolesPage() {
   const queryClient = useQueryClient();
   const fetchUsers = useServerFn(listAdminUsers);
   const updateRole = useServerFn(setAdminRole);
+  const addAdmin = useServerFn(addAdminByEmail);
+  const [newEmail, setNewEmail] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [busyUid, setBusyUid] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -71,6 +76,27 @@ function RolesPage() {
     }
   }
 
+  async function submitAdmin(event: React.FormEvent) {
+    event.preventDefault();
+    if (!window.confirm(`Grant full admin access to ${newEmail.trim()} and send a password setup link?`)) return;
+    setAdding(true);
+    setActionError(null);
+    setNotice(null);
+    try {
+      const result = await addAdmin({ data: { email: newEmail } });
+      await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      const { error: emailError } = await supabase.auth.resetPasswordForEmail(result.email, { redirectTo: `${window.location.origin}/reset-password` });
+      if (emailError) {
+        setActionError(`Admin access was granted, but the setup email couldn’t be sent. They can use Forgot Password, or you can submit this email again to retry.`);
+      } else {
+        setNotice(`Admin access granted to ${result.email}. Password setup email requested.`);
+        setNewEmail("");
+      }
+    } catch (cause) {
+      setActionError(cause instanceof Error ? cause.message : "Couldn’t add admin");
+    } finally { setAdding(false); }
+  }
+
   return (
     <>
       <header className="admin-page-head">
@@ -79,6 +105,15 @@ function RolesPage() {
           Manage admin access for Cloud team accounts.
         </p>
       </header>
+
+      <form className="admin-toolbar" onSubmit={(event) => void submitAdmin(event)}>
+        <div className="admin-field">
+          <label htmlFor="new-admin-email">New admin email</label>
+          <input id="new-admin-email" className="admin-input" type="email" autoComplete="email" required value={newEmail} onChange={(event) => setNewEmail(event.target.value)} disabled={adding} />
+        </div>
+        <Button type="submit" disabled={adding}>{adding ? "Adding…" : "Add admin & send setup"}</Button>
+      </form>
+      {notice ? <p className="admin-auth-notice" role="status">{notice}</p> : null}
 
       <div className="admin-toolbar">
         <div className="admin-field" style={{ flex: 1, maxWidth: 360 }}>
@@ -94,7 +129,7 @@ function RolesPage() {
         </div>
       </div>
 
-      {actionError ? <p className="admin-error">{actionError}</p> : null}
+      {actionError ? <p className="admin-error" role="alert">{actionError}</p> : null}
       {error ? <p className="admin-error">{error.message}</p> : null}
 
       <Card>
