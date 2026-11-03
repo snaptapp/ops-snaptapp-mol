@@ -78,6 +78,7 @@ vi.mock("@/lib/admin/content.functions", () => ({
   addFact: {},
   bulkImportFacts: {},
   changeFactStatus: {},
+  createCorrectedReplacement: {},
   exportFactsData: {},
   fetchFacts: {},
   saveFact: {},
@@ -101,6 +102,7 @@ vi.mock("@/lib/admin/contract", () => ({
 }));
 
 import {
+  CorrectedReplacementForm,
   FactEditor,
   ImportCsvModal,
   NewFactForm,
@@ -276,6 +278,17 @@ describe("fact lifecycle analytics", () => {
     expect(track.mock.calls).toEqual([
       ["project.fact_lifecycle_action", { action_category: "edit", outcome: "succeeded" }],
       ["project.fact_lifecycle_action", { action_category: "edit", outcome: "failed" }],
+    ]);
+  });
+
+  it("records one corrected-replacement action for the atomic retirement and admission", async () => {
+    renderToStaticMarkup(createElement(CorrectedReplacementForm, { fact }));
+    const mutation = harness.mutationOptions.at(-1);
+    await mutation?.onSuccess?.({ original: { id: "private" }, replacement: { id: "private" } });
+    mutation?.onError?.(new Error("Private error"));
+    expect(track.mock.calls).toEqual([
+      ["project.fact_lifecycle_action", { action_category: "corrected_replacement", outcome: "succeeded" }],
+      ["project.fact_lifecycle_action", { action_category: "corrected_replacement", outcome: "failed" }],
     ]);
   });
 });
