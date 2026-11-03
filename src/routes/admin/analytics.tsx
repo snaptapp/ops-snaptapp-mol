@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Card, CardLabel, CardTitle } from "@/index";
 import { ErrorNote, PageHead } from "@/admin/AdminShell";
 import { fetchGameAnalytics, fetchLaunchAnalytics, fetchQuestionTelemetry, flagQuestionTelemetry } from "@/lib/admin/ops.functions";
+import { fetchSearchConsole, fetchSiteTraffic } from "@/lib/admin/site-analytics.functions";
 import type { LaunchModeSummary } from "@/lib/admin/launch-analytics";
 
 export const Route = createFileRoute("/admin/analytics")({
