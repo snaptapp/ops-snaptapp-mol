@@ -2,15 +2,28 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { initAmplitude } from "@/lib/amplitude";
 import { AdminAuthProvider } from "@/admin/auth";
 
 import appCss from "../styles.css?url";
+
+// The linked Google Analytics connection supplies the measurement ID; the
+// literal fallback keeps tracking alive if the link is removed.
+const GA_MEASUREMENT_ID =
+  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY as string | undefined)?.trim() ||
+  "G-7QMJL9732Z";
+
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -44,13 +57,13 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-7QMJL9732Z" />
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} />
         <script
           dangerouslySetInnerHTML={{
             __html: `window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
-gtag('config', 'G-7QMJL9732Z');`,
+gtag('config', '${GA_MEASUREMENT_ID}');`,
           }}
         />
       </head>
@@ -66,10 +79,25 @@ gtag('config', 'G-7QMJL9732Z');`,
 // /__component) render inside it, so any chrome leaks into every frame.
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pagePath = useRouterState({
+    select: (state) => state.location.pathname + state.location.search,
+  });
+  const firstRender = useRef(true);
 
   useEffect(() => {
     initAmplitude();
   }, []);
+
+  // gtag only tracks the initial page load; send a page view on every
+  // in-app navigation so admin page usage shows up in Google Analytics.
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    window.gtag?.("event", "page_view", { page_path: pagePath });
+  }, [pagePath]);
+
 
 
   return (

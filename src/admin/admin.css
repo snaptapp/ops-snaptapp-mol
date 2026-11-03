@@ -17,6 +17,17 @@
   text-decoration: underline;
 }
 
+/* Button-styled links keep the button's dark text on lime; the plain-link
+   lime rule above would otherwise paint the label the same color as the
+   button background. */
+.admin-shell a.ds-button {
+  color: var(--ds-arena-color-primary-foreground);
+}
+
+.admin-shell a.ds-button:hover {
+  text-decoration: none;
+}
+
 .admin-sidebar {
   border-right: 1px solid var(--ds-arena-color-border);
   background: var(--ds-arena-color-surface-raised);
