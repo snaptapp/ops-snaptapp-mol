@@ -8,6 +8,13 @@
       "when": 1793688749584,
       "tag": "0000_cloud_admin_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793695420277,
+      "tag": "0001_invited_users_are_admins",
+      "breakpoints": true
     }
   ]
 }
