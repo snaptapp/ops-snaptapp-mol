@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button, Card, CardTitle } from "@/index";
 import { supabase } from "@/integrations/supabase/client";
+import "@/admin/admin.css";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -45,7 +47,7 @@ function AuthPage() {
     };
   }, []);
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
     setError(null);
@@ -93,37 +95,52 @@ function AuthPage() {
   if (signedInEmail) {
     return (
       <main className="admin-signin">
-        <div className="admin-card">
-          <h1>Signed in</h1>
-          <p>
-            You are signed in as <strong>{signedInEmail}</strong>.
-          </p>
-          <p>
+        <Card>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+            <img
+              src="/more-or-less-icon.png"
+              alt="More or Less"
+              style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "contain" }}
+            />
+            <div>
+              <CardTitle>Signed in</CardTitle>
+              <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
+                {signedInEmail}
+              </p>
+            </div>
+          </div>
+          <p style={{ fontSize: 14 }}>
             <Link to="/admin">Continue to the admin portal</Link>
           </p>
-          <button
-            type="button"
-            className="admin-button"
-            onClick={handleSignOut}
-            disabled={busy}
-          >
+          <Button type="button" variant="ghost" onClick={() => void handleSignOut()} disabled={busy}>
             {busy ? "Signing out…" : "Sign out"}
-          </button>
-        </div>
+          </Button>
+        </Card>
       </main>
     );
   }
 
   return (
     <main className="admin-signin">
-      <div className="admin-card">
-        <h1>{mode === "sign-in" ? "Admin sign in" : "Create admin account"}</h1>
-        <p>
-          {mode === "sign-in"
-            ? "Sign in with your admin team account."
-            : "Sign up with your team email. You will need to confirm it before signing in."}
-        </p>
-        <form onSubmit={handleSubmit}>
+      <Card>
+        <form onSubmit={(event) => void handleSubmit(event)}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+            <img
+              src="/more-or-less-icon.png"
+              alt="More or Less"
+              style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "contain" }}
+            />
+            <div>
+              <CardTitle>
+                {mode === "sign-in" ? "More or Less — Admin" : "Create admin account"}
+              </CardTitle>
+              <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
+                {mode === "sign-in"
+                  ? "Sign in with your admin team account."
+                  : "Sign up with your team email — confirm it, then sign in."}
+              </p>
+            </div>
+          </div>
           <div className="admin-field">
             <label htmlFor="auth-email">Email</label>
             <input
@@ -133,7 +150,7 @@ function AuthPage() {
               autoComplete="email"
               required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
             />
           </div>
           <div className="admin-field">
@@ -146,12 +163,16 @@ function AuthPage() {
               required
               minLength={6}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
             />
           </div>
           {error ? <p className="admin-error">{error}</p> : null}
-          {notice ? <p className="admin-notice">{notice}</p> : null}
-          <button type="submit" className="admin-button" disabled={busy}>
+          {notice ? (
+            <p style={{ color: "var(--ds-arena-color-primary)", fontSize: 13, margin: 0 }}>
+              {notice}
+            </p>
+          ) : null}
+          <Button type="submit" disabled={busy}>
             {busy
               ? mode === "sign-in"
                 ? "Signing in…"
@@ -159,22 +180,21 @@ function AuthPage() {
               : mode === "sign-in"
                 ? "Sign in"
                 : "Sign up"}
+          </Button>
+          <button
+            type="button"
+            className="admin-reset-link"
+            disabled={busy}
+            onClick={() => {
+              setMode(mode === "sign-in" ? "sign-up" : "sign-in");
+              setError(null);
+              setNotice(null);
+            }}
+          >
+            {mode === "sign-in" ? "Need an account? Sign up" : "Already have an account? Sign in"}
           </button>
         </form>
-        <button
-          type="button"
-          className="admin-reset-link"
-          onClick={() => {
-            setMode(mode === "sign-in" ? "sign-up" : "sign-in");
-            setError(null);
-            setNotice(null);
-          }}
-        >
-          {mode === "sign-in"
-            ? "Need an account? Sign up"
-            : "Already have an account? Sign in"}
-        </button>
-      </div>
+      </Card>
     </main>
   );
 }
