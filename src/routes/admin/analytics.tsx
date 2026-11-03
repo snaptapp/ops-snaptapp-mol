@@ -484,7 +484,6 @@ function AnalyticsPage() {
           </Card>
         </>
       ) : null}
-      <SiteTraffic />
       <SearchConsole />
     </>
   );
