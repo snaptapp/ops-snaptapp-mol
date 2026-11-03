@@ -33,7 +33,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     if (immediate) throw redirect({ href: immediate });
     return data;
   },
-  errorComponent: ({ error }) => <main className="admin-signin"><Card><CardTitle>CONNECTION UNAVAILABLE</CardTitle><p role="alert">{error.message}</p><a href="/auth">RETURN TO SIGN IN</a></Card></main>,
+  errorComponent: ({ error }) => <main className="admin-signin"><Card><CardTitle>CONNECTION UNAVAILABLE</CardTitle><p role="alert">{error instanceof Error ? error.message : "Connection could not be loaded."}</p><a href="/auth">RETURN TO SIGN IN</a></Card></main>,
   component: Consent,
 });
 
