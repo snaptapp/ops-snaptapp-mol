@@ -1,5 +1,8 @@
 # Roadmap
 
+## Current
+- [ ] Add admins by email from Team accounts, send password setup, and verify account creation.
+
 ## Done
 - [x] Grant the approved Lovable account admin access and replace the cramped access-denied screen; signed-in Overview loaded live data, 320px screen fits, 14 auth tests passed.
 - [x] Add protected read-only MCP fact-bank and daily-pack summaries plus browser-local navigation (WebMCP Tools); manifest extracted, 15 security tests passed, consent login return and anonymous 401 verified.
