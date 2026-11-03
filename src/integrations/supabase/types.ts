@@ -14,13 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      user_roles: {
+        Row: {
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      portal_admin_users: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          email_verified: boolean
+          is_admin: boolean
+          last_sign_in_at: string
+          uid: string
+        }[]
+      }
+      set_portal_admin_role: {
+        Args: { make_admin: boolean; target_uid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

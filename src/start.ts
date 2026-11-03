@@ -1,12 +1,12 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
-import { getIdToken } from "./lib/firebase/client";
+import { getCloudToken } from "./lib/admin/cloud-token";
 
-/** Attaches the signed-in admin's Firebase ID token to every server call. */
-const attachFirebaseAuth = createMiddleware({ type: "function" }).client(async ({ next }) => {
-  const token = await getIdToken();
+/** Attach only the Cloud session; Firebase remains the data backend. */
+const attachCloudAuth = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  const token = await getCloudToken();
   return next(token ? { headers: { Authorization: `Bearer ${token}` } } : {});
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachFirebaseAuth],
+  functionMiddleware: [attachCloudAuth],
 }));

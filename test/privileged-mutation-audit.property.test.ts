@@ -70,7 +70,7 @@ import {
 type CapturedValidator = (data: unknown) => unknown;
 type CapturedHandler = (input: {
   data: never;
-  context: { user: AdminUser };
+  context: { user: AdminUser; cloud: { rpc: (name: string, args: Record<string, unknown>) => Promise<{ error: null }> } };
 }) => Promise<unknown>;
 
 interface CapturedServerFn {
@@ -254,6 +254,9 @@ const AUDIT_TARGET_TYPES = declaredAuditTargetTypes();
 // ---------------------------------------------------------------------------
 // Scenarios: one per Privileged_Mutation_Path, reached through its handler
 // ---------------------------------------------------------------------------
+
+const cloudRoleCalls: Record<string, unknown>[] = [];
+const cloudDouble = { rpc: async (_name: string, args: Record<string, unknown>) => { cloudRoleCalls.push(args); return { error: null }; } };
 
 const ADMIN: AdminUser = {
   uid: "admin-privileged-1",
@@ -515,30 +518,26 @@ const actOnReportScenario: fc.Arbitrary<MutationScenario> = fc
     };
   });
 
-/** `setAdminRole` → `setAdminClaim` (Firebase Auth custom claims). */
+/** `setAdminRole` → protected Cloud admin role RPC. */
 const setAdminRoleScenario: fc.Arbitrary<MutationScenario> = fc
   .tuple(slugArb, fc.boolean(), slugArb)
   .map(([uidSlug, admin, emailSlug]) => {
     // Never the caller's own uid: revoking your own admin is refused before any
     // mutation, which is a different (already-covered) path.
-    const uid = `u_${uidSlug}`;
-    const email = `${emailSlug}@example.com`;
+    void uidSlug; void emailSlug;
+    const uid = "00000000-0000-4000-8000-000000000001";
     return {
       label: `setAdminRole(${uid}, ${String(admin)})`,
       mutation: "setAdminClaim" as const,
       moduleFile: "src/lib/admin/roles.functions.ts",
       exportedSymbol: "setAdminRole",
-      prepare: () => {
-        firebaseAuthDouble().seedUser({ uid, email, isAdmin: !admin });
-      },
+      prepare: () => { cloudRoleCalls.length = 0; },
       payload: { uid, admin },
       expectedAction: admin ? "grant_admin" : "revoke_admin",
       expectedTargetType: "user" as const,
       expectedTargetId: uid,
       expectMutated: () => {
-        expect(firebaseAuthDouble().claimChanges()).toEqual([{ uid, admin }]);
-        // The entitlements mirror is written through Firestore.
-        expect(firestoreDouble().document(`entitlements/${email}`)?.data["isAdmin"]).toBe(admin);
+        expect(cloudRoleCalls).toEqual([{ target_uid: uid, make_admin: admin }]);
       },
     };
   });
@@ -669,7 +668,7 @@ async function runScenario(scenario: MutationScenario): Promise<void> {
   const validated =
     captured.validator === null ? scenario.payload : captured.validator(scenario.payload);
 
-  await handler({ data: validated as never, context: { user: ADMIN } });
+  await handler({ data: validated as never, context: { user: ADMIN, cloud: cloudDouble } });
 
   // One audit is committed with every persisted fact. Non-fact service
   // boundaries still record one entry for their single logical mutation.
@@ -765,7 +764,7 @@ describe("Feature: admin-quality-gates-and-shared-contracts, Property 19: Every 
 
     // A fact that does not exist: `updateFact` raises before the audit call.
     await expect(
-      handler({ data: { id: "absent_fact", question: "?" } as never, context: { user: ADMIN } }),
+      handler({ data: { id: "absent_fact", question: "?" } as never, context: { user: ADMIN, cloud: cloudDouble } }),
     ).rejects.toThrow(/absent_fact/);
 
     expect(auditDouble().entryCount()).toBe(0);

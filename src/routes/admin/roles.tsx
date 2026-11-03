@@ -53,8 +53,8 @@ function RolesPage() {
     if (
       !window.confirm(
         currentlyAdmin
-          ? `Revoke admin access for ${label}? They will lose access on their next sign-in or token refresh.`
-          : `Grant admin access to ${label}? They must sign out and back in for it to take effect.`,
+          ? `Revoke admin access for ${label}? They will lose access on their next request.`
+          : `Grant admin access to ${label}? They can open the portal with their Cloud sign-in.`,
       )
     ) {
       return;
@@ -76,9 +76,7 @@ function RolesPage() {
       <header className="admin-page-head">
         <h1>Roles &amp; access</h1>
         <p>
-          Grant or revoke admin access. Changes apply on the user's next sign-in or token refresh
-          (up to ~1 hour). Email-allowlisted accounts also pass the gate — manage that list in the
-          project secrets.
+          Manage admin access for Cloud team accounts.
         </p>
       </header>
 
@@ -158,7 +156,7 @@ function RolesPage() {
                       <td>{formatDate(record.createdAt)}</td>
                       <td>{formatDate(record.lastSignInAt)}</td>
                       <td>
-                        {record.isAdmin ? <Badge tone="purple">Admin</Badge> : <Badge>Player</Badge>}
+                        {record.isAdmin ? <Badge tone="purple">Admin</Badge> : <Badge>Team member</Badge>}
                         {isSelf ? (
                           <>
                             {" "}

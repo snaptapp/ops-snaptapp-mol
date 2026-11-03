@@ -1,21 +1,11 @@
 import { createMiddleware, createServerFn } from "@tanstack/react-start";
-import { getIdToken } from "@/lib/firebase/client";
-import type { AdminUser } from "@/lib/firebase/verify.server";
 
 export const authMiddleware = createMiddleware({ type: "function" })
-  .client(async ({ next }) => {
-    const token = await getIdToken();
-    return next({
-      headers: {
-        authorization: token ? `Bearer ${token}` : "",
-      },
-    });
-  })
   .server(async ({ next }) => {
-    const { requireAdmin } = await import("@/lib/firebase/verify.server");
-    const user = await requireAdmin();
+    const { requireCloudAdmin } = await import("./cloud-auth.server");
+    const { user, client } = await requireCloudAdmin();
     return next({
-      context: { user },
+      context: { user, cloud: client },
     });
   });
 

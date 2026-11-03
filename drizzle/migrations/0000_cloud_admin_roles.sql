@@ -1,0 +1,14 @@
+CREATE TABLE public.user_roles (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, role text NOT NULL CHECK (role = 'admin'), UNIQUE (user_id, role));
+GRANT SELECT ON public.user_roles TO authenticated;
+GRANT ALL ON public.user_roles TO service_role;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY read_own_role ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE FUNCTION public.bootstrap_portal_admin() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN IF lower(NEW.email) = 'michael@snaptapp.us' AND NEW.email_confirmed_at IS NOT NULL AND (TG_OP = 'INSERT' OR OLD.email_confirmed_at IS NULL) THEN INSERT INTO public.user_roles(user_id, role) VALUES (NEW.id, 'admin') ON CONFLICT DO NOTHING; END IF; RETURN NEW; END; $$;
+REVOKE ALL ON FUNCTION public.bootstrap_portal_admin() FROM PUBLIC, anon, authenticated;
+CREATE TRIGGER bootstrap_portal_admin AFTER INSERT OR UPDATE OF email_confirmed_at ON auth.users FOR EACH ROW EXECUTE FUNCTION public.bootstrap_portal_admin();
+CREATE FUNCTION public.portal_admin_users() RETURNS TABLE(uid uuid, email text, email_verified boolean, created_at timestamptz, last_sign_in_at timestamptz, is_admin boolean) LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN IF NOT EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = auth.uid() AND r.role = 'admin') THEN RAISE EXCEPTION 'Admin access required'; END IF; RETURN QUERY SELECT u.id, u.email::text, u.email_confirmed_at IS NOT NULL, u.created_at, u.last_sign_in_at, EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = u.id AND r.role = 'admin') FROM auth.users u ORDER BY u.created_at DESC; END; $$;
+REVOKE ALL ON FUNCTION public.portal_admin_users() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.portal_admin_users() TO authenticated;
+CREATE FUNCTION public.set_portal_admin_role(target_uid uuid, make_admin boolean) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN IF NOT EXISTS (SELECT 1 FROM public.user_roles r WHERE r.user_id = auth.uid() AND r.role = 'admin') THEN RAISE EXCEPTION 'Admin access required'; END IF; IF target_uid = auth.uid() AND NOT make_admin THEN RAISE EXCEPTION 'You cannot revoke your own admin access'; END IF; IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = target_uid) THEN RAISE EXCEPTION 'Account not found'; END IF; IF make_admin THEN INSERT INTO public.user_roles(user_id, role) VALUES (target_uid, 'admin') ON CONFLICT DO NOTHING; ELSE DELETE FROM public.user_roles WHERE user_id = target_uid AND role = 'admin'; END IF; END; $$;
+REVOKE ALL ON FUNCTION public.set_portal_admin_role(uuid, boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.set_portal_admin_role(uuid, boolean) TO authenticated;

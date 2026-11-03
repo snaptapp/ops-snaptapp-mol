@@ -1,5 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Badge, Button, Card, CardTitle } from "@/index";
 import {
   FACT_STATUSES,
@@ -66,106 +66,6 @@ const NAV = [
 ] as const satisfies readonly { to: string; label: string; exact?: boolean }[];
 
 
-function SignIn() {
-  const { signIn, resetPassword, error } = useAdminAuth();
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [resetSent, setResetSent] = useState(false);
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    setBusy(true);
-    setResetSent(false);
-    try {
-      await signIn(email, password);
-      await navigate({ to: "/admin", replace: true });
-    } catch {
-      /* error surfaced through context */
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleReset() {
-    if (!email) return;
-    setBusy(true);
-    try {
-      await resetPassword(email);
-      setResetSent(true);
-    } catch {
-      /* error surfaced through context */
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <main className="admin-signin">
-      <Card>
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-            <img
-              src="/more-or-less-icon.png"
-              alt="More or Less"
-              style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "contain" }}
-            />
-            <div>
-              <CardTitle>More or Less — Admin</CardTitle>
-              <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
-                Sign in with an authorised admin account.
-              </p>
-            </div>
-          </div>
-          <div className="admin-field">
-            <label htmlFor="admin-email">Email</label>
-            <input
-              id="admin-email"
-              className="admin-input"
-              type="email"
-              autoComplete="username"
-              required
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </div>
-          <div className="admin-field">
-            <label htmlFor="admin-password">Password</label>
-            <input
-              id="admin-password"
-              className="admin-input"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
-          </div>
-          {error ? <p className="admin-error">{error}</p> : null}
-          {resetSent ? (
-            <p style={{ color: "var(--ds-arena-color-primary)", fontSize: 13, margin: 0 }}>
-              Password reset email sent — check your inbox.
-            </p>
-          ) : null}
-          <Button type="submit" disabled={busy}>
-            {busy ? "Signing in…" : "Sign in"}
-          </Button>
-          <button
-            type="button"
-            className="admin-reset-link"
-            disabled={busy || !email}
-            title={email ? undefined : "Enter your email above first"}
-            onClick={() => void handleReset()}
-          >
-            Forgot password?
-          </button>
-        </form>
-      </Card>
-    </main>
-  );
-}
-
 export function AdminShell({ children }: { children: ReactNode }) {
   const { user, ready, signOutAdmin } = useAdminAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -224,7 +124,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) return <SignIn />;
+  if (!user) return null;
 
   return (
     <div className="admin-shell">

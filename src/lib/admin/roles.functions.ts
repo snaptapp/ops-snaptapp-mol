@@ -1,44 +1,40 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "./middleware";
+import type { AdminUserRecord } from "./roles.server";
+
+interface PortalAdminRow { uid: string; email: string | null; email_verified: boolean; created_at: string | null; last_sign_in_at: string | null; is_admin: boolean }
 
 export const listAdminUsers = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
-  .handler(async () => {
-    const { listAuthUsers } = await import("./roles.server");
-    return listAuthUsers();
+  .handler(async ({ context }) => {
+    const { data, error } = await context.cloud.rpc("portal_admin_users");
+    if (error) throw new Error("Unable to load team accounts");
+    return ((data ?? []) as PortalAdminRow[]).map((record): AdminUserRecord => ({
+      uid: record.uid, email: record.email, displayName: null,
+      emailVerified: record.email_verified, disabled: false, mfaEnrolled: false,
+      isAdmin: record.is_admin, createdAt: record.created_at, lastSignInAt: record.last_sign_in_at,
+    }));
   });
 
 export const setAdminRole = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator((data) => z.object({ uid: z.string().min(1), admin: z.boolean() }).parse(data))
+  .inputValidator((data) => z.object({ uid: z.string().uuid().min(1), admin: z.boolean() }).parse(data))
   .handler(async ({ data, context }) => {
     const caller = context.user;
     if (caller.uid === data.uid && !data.admin) {
       throw new Error("You cannot revoke your own admin access");
     }
-    const { setAdminClaim } = await import("./roles.server");
     const { logAdminAction } = await import("@/lib/firebase/audit.server");
-    const { patchDoc } = await import("@/lib/firebase/firestore.server");
-
-    // Write isAdmin to entitlements/{email} so the onUserCreated trigger
-    // propagates the claim to any future UIDs for the same email address.
-    const entitlementsWriter = async (email: string, isAdmin: boolean) => {
-      await patchDoc(`entitlements/${email}`, {
-        isAdmin,
-        grantedAt: new Date().toISOString(),
-        grantedBy: caller.email ?? caller.uid,
-      });
-    };
-
-    const updated = await setAdminClaim(data.uid, data.admin, entitlementsWriter);
+    const { error } = await context.cloud.rpc("set_portal_admin_role", { target_uid: data.uid, make_admin: data.admin });
+    if (error) throw new Error(error.message);
     await logAdminAction(caller, {
       action: data.admin ? "grant_admin" : "revoke_admin",
       targetType: "user",
       targetId: data.uid,
-      details: `${caller.email ?? caller.uid} ${data.admin ? "granted" : "revoked"} admin for ${updated.email ?? data.uid}`,
+      details: `${caller.email ?? caller.uid} ${data.admin ? "granted" : "revoked"} admin for ${data.uid}`,
     });
-    return updated;
+    return { uid: data.uid, isAdmin: data.admin };
   });
 
 export const fetchAuditLogEntries = createServerFn({ method: "GET" })

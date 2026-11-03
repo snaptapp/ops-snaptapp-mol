@@ -12,7 +12,7 @@
 6. **DDM-4:** Consume exact vendored kernel/tables/adapters/fixtures, never reimplement or hand-edit them; fail closed on local digest or read-only upstream freshness failure.
 7. **Reconciliation:** Report only, never mutate Firestore or write `fact_count` from reconciliation.
 8. **Mobile UI:** Put shared overflow and touch rules in Arena tokens; use the admin drawer and labelled mobile record cards, retaining desktop tables and actions, because the public root redirects to Admin.
-9. **Backends:** Firebase remains the data backend; the portal talks to Firestore via Firebase server functions. Lovable Cloud provides email/password auth for admin team accounts at `/auth` (client-side only, no profiles table). Still do not re-register `attachSupabaseAuth` in `src/start.ts` — its middleware runs on every server call and breaks Firebase calls; Cloud auth stays out of the server-function path.
+9. **Backends:** Firebase remains the game data backend; Cloud accounts at `/auth` authenticate portal calls via `attachCloudAuth` and `requireCloudAdmin`. Verify the live Cloud user and protected `public.user_roles` row on every admin request, never Firebase claims or user-editable metadata. Use public build-time config as the canonical Worker's fallback; do not register a second bearer middleware. Role management uses Cloud RPCs with server-side authorization, while existing Firebase game-account utilities stay separate.
 
 
 ## Essential Commands
