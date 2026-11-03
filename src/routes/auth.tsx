@@ -64,6 +64,11 @@ function AuthPage() {
           password,
         });
         if (signInError) throw signInError;
+        try {
+          window.__lovableEvents?.track?.("project.admin_auth_completed", {
+            mode: "sign_in", outcome: "authenticated", method: "email_password",
+          });
+        } catch { /* Analytics must not interrupt sign-in. */ }
       }
       await navigate({ href: returnTo, replace: true });
     } catch (err) {
@@ -80,6 +85,11 @@ function AuthPage() {
       const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
       if (result.error) throw result.error;
       if (result.redirected) return;
+      try {
+        window.__lovableEvents?.track?.("project.admin_auth_completed", {
+          mode: "sign_in", outcome: "authenticated", method: "lovable",
+        });
+      } catch { /* Analytics must not interrupt sign-in. */ }
       await navigate({ href: returnTo, replace: true });
     } catch {
       setError("We couldn’t complete Lovable sign-in. Please try again.");

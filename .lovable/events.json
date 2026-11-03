@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "events": {
+    "project.admin_auth_completed": {
+      "event_schema_version": 1,
+      "description": "An email/password or in-page Lovable sign-in request succeeded. Authentication success does not imply administrator authorization. Public signup is not currently offered.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "outcome",
+          "method"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "sign_in",
+              "sign_up"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "authenticated",
+              "confirmation_required"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "email_password",
+              "lovable"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

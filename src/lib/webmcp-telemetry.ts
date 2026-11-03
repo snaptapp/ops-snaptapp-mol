@@ -1,14 +1,17 @@
 // Static names and durations must satisfy the collector's lovable.webmcp_tool_invoked bounds.
+declare global {
+  interface Window {
+    __lovableEvents?: {
+      track?: (event: string, properties?: Record<string, unknown>) => string | null;
+    };
+  }
+}
 const MAX_DURATION_MS = 86_400_000;
 
 function track(toolName: string, outcome: "ok" | "error", durationMs: number) {
   try {
     if (!/^[A-Za-z0-9_.-]{1,128}$/.test(toolName)) return;
-    const runtime = (
-      window as Window & {
-        __lovableEvents?: { track?: (event: string, properties?: Record<string, unknown>) => string | null };
-      }
-    ).__lovableEvents;
+    const runtime = window.__lovableEvents;
     runtime?.track?.("lovable.webmcp_tool_invoked", {
       tool_name: toolName,
       outcome,
