@@ -475,7 +475,26 @@ function AnalyticsPage() {
                 <span>{row.answered} answered</span>
                 <span>{Math.round(row.accuracy * 100)}% correct</span>
                 <span>{Math.round(row.skipRate * 100)}% skipped</span>
-                <Button size="sm" variant="danger" onClick={async () => { try { await flagQuestion({ data: { days: days as 7 | 30 | 90, questionId: row.questionId } }); await questions.refetch(); } catch (error) { console.error('Failed to flag question:', error); } }}>
+                <Button size="sm" variant="danger" onClick={async () => {
+                  let outcome: "succeeded" | "failed" = "failed";
+                  try {
+                    await flagQuestion({ data: { days: days as 7 | 30 | 90, questionId: row.questionId } });
+                    outcome = "succeeded";
+                  } catch (error) {
+                    console.error('Failed to flag question:', error);
+                  }
+                  try {
+                    window.__lovableEvents?.track?.("project.analytics_question_flagged", {
+                      action_category: "flag_for_review",
+                      outcome,
+                    });
+                  } catch {
+                    // Tracking must not interrupt the review action or its refresh.
+                  }
+                  if (outcome === "succeeded") {
+                    try { await questions.refetch(); } catch (error) { console.error('Failed to refresh question telemetry:', error); }
+                  }
+                }}>
 
                   Flag for review
                 </Button>

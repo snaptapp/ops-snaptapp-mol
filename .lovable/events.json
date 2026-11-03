@@ -72,6 +72,37 @@
         }
       }
     },
+    "project.analytics_question_flagged": {
+      "event_schema_version": 1,
+      "description": "An administrator's explicit question-level Flag for review action finishes in analytics.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_category",
+          "outcome"
+        ],
+        "properties": {
+          "action_category": {
+            "type": "string",
+            "enum": [
+              "flag_for_review"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed"
+            ]
+          }
+        }
+      }
+    },
     "project.analytics_summary_completed": {
       "event_schema_version": 1,
       "description": "The submitted insights request returned a non-empty AI summary.",
