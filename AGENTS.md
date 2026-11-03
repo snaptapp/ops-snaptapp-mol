@@ -12,7 +12,7 @@
 6. **DDM-4:** Consume exact vendored kernel/tables/adapters/fixtures, never reimplement or hand-edit them; fail closed on local digest or read-only upstream freshness failure.
 7. **Reconciliation:** Report only, never mutate Firestore or write `fact_count` from reconciliation.
 8. **Mobile UI:** Put shared overflow and touch rules in Arena tokens; use the admin drawer and labelled mobile record cards, retaining desktop tables and actions, because the public root redirects to Admin.
-9. **Backends:** Lovable Cloud (database, auth, storage, functions) is enabled alongside Firebase; Firebase stays the game's source of truth for facts/reports, and Cloud holds only portal-owned data, because game services must keep reading Firestore unchanged.
+9. **Backends:** Firebase is the only backend; the portal talks to Firestore/Auth via Firebase server functions. Lovable Cloud was enabled once and removed — do not re-register `attachSupabaseAuth` in `src/start.ts`, because its middleware runs on every server call and breaks Firebase calls when Cloud env vars are absent.
 
 
 ## Essential Commands
