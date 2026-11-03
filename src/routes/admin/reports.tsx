@@ -2102,7 +2102,7 @@ function AutoTriagePanel() {
           <ul className="admin-list">
             {result.items.map((item) => (
               <li key={item.reportId}>
-                <Badge tone={item.outcome === "left_for_admin" || item.outcome === "error" ? "danger" : "success"}>
+                <Badge tone={item.outcome === "error" ? "red" : item.outcome === "left_for_admin" ? "amber" : "lime"}>
                   {item.outcome === "auto_resolved"
                     ? "AUTO-RESOLVED BY AI"
                     : item.outcome === "would_resolve"
