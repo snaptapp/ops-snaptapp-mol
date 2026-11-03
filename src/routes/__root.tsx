@@ -2,12 +2,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   createRootRouteWithContext,
+  useRouter,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import { initAmplitude } from "@/lib/amplitude";
+import { supabase } from "@/integrations/supabase/client";
 
 import appCss from "../styles.css?url";
 
