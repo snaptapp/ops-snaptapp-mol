@@ -1,9 +1,10 @@
 # Roadmap
 
 ## Current
-- [ ] Add admins by email from Team accounts, send password setup, and verify account creation.
+- [ ] Verify new-account creation and password email on canonical ops host — requires managed privileged Cloud account creation on that host and an approved recipient for the end-to-end email check.
 
 ## Done
+- [x] Add email-based admin onboarding to Team accounts; 27 tests passed, existing-account grant verified signed in, phone layout fits. Email sending was mocked during the browser check.
 - [x] Grant the approved Lovable account admin access and replace the cramped access-denied screen; signed-in Overview loaded live data, 320px screen fits, 14 auth tests passed.
 - [x] Add protected read-only MCP fact-bank and daily-pack summaries plus browser-local navigation (WebMCP Tools); manifest extracted, 15 security tests passed, consent login return and anonymous 401 verified.
 - [x] Enable Lovable sign-in alongside Cloud admin access.
