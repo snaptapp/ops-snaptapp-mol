@@ -1537,3 +1537,8 @@ th .admin-infotip:focus-visible .admin-infotip-content,
 @media (max-width: 380px) {
   .admin-mobile-fact-controls { grid-template-columns: minmax(0, 1fr); }
 }
+
+.admin-account-methods { list-style: none; padding: 0; margin: var(--ds-arena-space-4) 0 0; display: grid; gap: var(--ds-arena-space-3); }
+.admin-account-methods li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-arena-space-3); padding: var(--ds-arena-space-3); border: 1px solid var(--ds-arena-color-border); border-radius: var(--ds-arena-radius-md); }
+.admin-account-methods li > span { flex: 1 1 140px; min-width: 0; font-weight: 700; }
+.admin-auth-providers { display: grid; gap: var(--ds-arena-space-2); }
