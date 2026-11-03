@@ -3,7 +3,7 @@ import type { ToolContext } from "@lovable.dev/mcp-js";
 import { requireMcpAdmin } from "../src/lib/mcp/access";
 
 const { authorize } = vi.hoisted(() => ({ authorize: vi.fn() }));
-vi.mock("../src/lib/admin/cloud-auth.server", () => ({ cloudAdminForToken: authorize }));
+vi.mock("../src/lib/admin/cloud-auth.server", () => ({ cloudAdminForToken: (token: string) => authorize(token) }));
 const context = (authenticated: boolean, token: string | null) => ({
   isAuthenticated: () => authenticated, getToken: () => token,
 }) as ToolContext;
@@ -23,7 +23,7 @@ describe("MCP admin authorization", () => {
     expect(authorize).toHaveBeenCalledWith("verified-oauth-token");
   });
   it("fails closed when the live role check denies or is unavailable", async () => {
-    authorize.mockImplementation(async () => { throw new Error("private provider details"); });
+    authorize.mockImplementation(() => { throw new Error("private provider details"); });
     const result = await requireMcpAdmin(context(true, "token")).then(() => "allowed", () => "denied");
     expect(result).toBe("denied");
   });
