@@ -32,7 +32,7 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "sign-in" | "sign-up";
+type Mode = "sign-in" | "forgot-password";
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -51,18 +51,13 @@ function AuthPage() {
     setError(null);
     setNotice(null);
     try {
-      if (mode === "sign-up") {
-        const { data, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: new URL(returnTo, window.location.origin).href },
+      if (mode === "forgot-password") {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
         });
-        if (signUpError) throw signUpError;
-        if (!data.session) {
-          setNotice("Check your email to confirm your account, then sign in.");
-          setMode("sign-in");
-          return;
-        }
+        if (resetError) throw resetError;
+        setNotice("If an account exists for this email, you’ll receive a password reset link. Check your inbox and spam folder.");
+        return;
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -151,12 +146,12 @@ function AuthPage() {
             />
             <div>
               <CardTitle>
-                {mode === "sign-in" ? "More or Less — Admin" : "Create team account"}
+                {mode === "sign-in" ? "More or Less — Admin" : "Reset your password"}
               </CardTitle>
               <p className="admin-auth-copy">
                 {mode === "sign-in"
                   ? "Sign in with your admin team account."
-                  : "Sign up with your team email — confirm it, then sign in."}
+                  : "Enter your account email to receive a reset link."}
               </p>
             </div>
           </div>
@@ -172,19 +167,19 @@ function AuthPage() {
               onChange={(event) => setEmail(event.target.value)}
             />
           </div>
-          <div className="admin-field">
+          {mode === "sign-in" ? <div className="admin-field">
             <label htmlFor="auth-password">Password</label>
             <input
               id="auth-password"
               className="admin-input"
               type="password"
-              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+              autoComplete="current-password"
               required
               minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-          </div>
+          </div> : null}
           {error ? <p className="admin-error" role="alert">{error}</p> : null}
           {notice ? (
             <p className="admin-auth-notice" role="status">
@@ -195,23 +190,22 @@ function AuthPage() {
             {busy
               ? mode === "sign-in"
                 ? "Signing in…"
-                : "Creating account…"
+                : "Sending reset link…"
               : mode === "sign-in"
                 ? "Sign in"
-                : "Sign up"}
+                : "Send reset link"}
           </Button>
-          <button type="button" className="lovable-auth-button" disabled={busy} onClick={() => void handleLovableSignIn()}>Continue with Lovable</button>
+          {mode === "sign-in" ? <button type="button" className="lovable-auth-button" disabled={busy} onClick={() => void handleLovableSignIn()}>Continue with Lovable</button> : null}
           <Button variant="ghost"
             type="button"
-            className="admin-reset-link"
             disabled={busy}
             onClick={() => {
-              setMode(mode === "sign-in" ? "sign-up" : "sign-in");
+              setMode(mode === "sign-in" ? "forgot-password" : "sign-in");
               setError(null);
               setNotice(null);
             }}
           >
-            {mode === "sign-in" ? "Need an account? Sign up" : "Already have an account? Sign in"}
+            {mode === "sign-in" ? "Forgot Password" : "Back to sign in"}
           </Button>
         </form>
       </Card>
