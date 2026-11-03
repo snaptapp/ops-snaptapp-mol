@@ -292,6 +292,108 @@ function CategoryBreakdown({
   );
 }
 
+function SiteTraffic() {
+  const load = useServerFn(fetchSiteTraffic);
+  const query = useQuery({ queryKey: ["ga-site-traffic"], queryFn: () => load(), retry: false });
+  const data = query.data;
+  const maxUsers = data ? Math.max(1, ...data.days.map((day) => day.users)) : 1;
+  return (
+    <Card>
+      <CardTitle>Site traffic (Google Analytics)</CardTitle>
+      <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: "8px 0 0" }}>
+        Daily visitors to the snaptapp.us site over the last 28 days, from the linked Google Analytics account.
+      </p>
+      <ErrorNote error={query.error} />
+      {query.isLoading ? <p className="admin-empty">Loading site traffic…</p> : null}
+      {data ? (
+        <>
+          <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: "8px 0 0" }}>
+            Property: {data.property} · {data.totalSessions} sessions in 28 days
+          </p>
+          <div style={{ marginTop: "var(--ds-arena-space-3)" }}>
+            {data.days.map((day) => (
+              <div key={day.date} className="admin-bar-row">
+                <span className="admin-bar-row__name">{day.date}</span>
+                <span
+                  style={{
+                    display: "block",
+                    height: 8,
+                    borderRadius: 999,
+                    background: "var(--ds-arena-color-surface)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "block",
+                      height: "100%",
+                      width: `${(day.users / maxUsers) * 100}%`,
+                      background: "var(--ds-arena-color-purple)",
+                    }}
+                  />
+                </span>
+                <span style={{ textAlign: "right" }}>{day.users}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </Card>
+  );
+}
+
+function SearchConsole() {
+  const load = useServerFn(fetchSearchConsole);
+  const query = useQuery({ queryKey: ["search-console-status"], queryFn: () => load(), retry: false });
+  const data = query.data;
+  return (
+    <Card>
+      <CardTitle>Search Console</CardTitle>
+      <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: "8px 0 0" }}>
+        Verified sites and sitemap status from the linked Search Console account.
+      </p>
+      <ErrorNote error={query.error} />
+      {query.isLoading ? <p className="admin-empty">Loading Search Console…</p> : null}
+      {data ? (
+        <>
+          <div style={{ marginTop: "var(--ds-arena-space-3)", display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {data.sites.length === 0 ? (
+              <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: 0 }}>
+                No verified sites on this account yet.
+              </p>
+            ) : (
+              data.sites.map((site) => (
+                <Badge key={site} tone={site === data.matchedSite ? "lime" : "neutral"}>{site}</Badge>
+              ))
+            )}
+          </div>
+          {data.matchedSite ? (
+            <div style={{ marginTop: "var(--ds-arena-space-3)" }}>
+              {data.sitemaps.length === 0 ? (
+                <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: 0 }}>
+                  No sitemaps submitted for {data.matchedSite}.
+                </p>
+              ) : (
+                data.sitemaps.map((sitemap) => (
+                  <div key={sitemap.path} className="admin-bar-row" style={{ gridTemplateColumns: "minmax(0, 2fr) auto auto" }}>
+                    <span className="admin-bar-row__name" title={sitemap.path}>{sitemap.path}</span>
+                    <span style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13 }}>
+                      {sitemap.lastSubmitted ? `Submitted ${new Date(sitemap.lastSubmitted).toLocaleDateString()}` : "Not submitted yet"}
+                    </span>
+                    <Badge tone={sitemap.errors > 0 ? "red" : sitemap.warnings > 0 ? "amber" : "lime"}>
+                      {sitemap.errors > 0 ? `${sitemap.errors} errors` : sitemap.warnings > 0 ? `${sitemap.warnings} warnings` : "OK"}
+                    </Badge>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </Card>
+  );
+}
+
 function AnalyticsPage() {
   const load = useServerFn(fetchGameAnalytics);
   const loadQuestions = useServerFn(fetchQuestionTelemetry);
