@@ -68,6 +68,10 @@ function RolesPage() {
     setActionError(null);
     try {
       await updateRole({ data: { uid, admin: !currentlyAdmin } });
+      window.__lovableEvents?.track?.("project.admin_role_changed", {
+        change_type: currentlyAdmin ? "revoke" : "grant",
+        outcome: "succeeded",
+      });
       await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     } catch (cause) {
       setActionError(cause instanceof Error ? cause.message : "Role update failed");
@@ -84,6 +88,9 @@ function RolesPage() {
     setNotice(null);
     try {
       const result = await addAdmin({ data: { email: newEmail } });
+      if (!users.some((record) => record.uid === result.uid && record.isAdmin)) {
+        window.__lovableEvents?.track?.("project.admin_role_changed", { change_type: "grant", outcome: "succeeded" });
+      }
       await queryClient.invalidateQueries({ queryKey: ["admin-users"] });
       const { error: emailError } = await supabase.auth.resetPasswordForEmail(result.email, { redirectTo: `${window.location.origin}/reset-password` });
       if (emailError) {
