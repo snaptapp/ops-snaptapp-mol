@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card, CardLabel, CardTitle } from "@/index";
+import { Badge, Button, Card, CardLabel, CardTitle } from "@/index";
 import { ErrorNote, PageHead } from "@/admin/AdminShell";
 import { fetchGameAnalytics, fetchLaunchAnalytics, fetchQuestionTelemetry, flagQuestionTelemetry } from "@/lib/admin/ops.functions";
 import { fetchSearchConsole, fetchSiteTraffic } from "@/lib/admin/site-analytics.functions";
@@ -534,6 +534,8 @@ function AnalyticsPage() {
           </Card>
         </>
       ) : null}
+      <SiteTraffic />
+      <SearchConsole />
     </>
   );
 }
