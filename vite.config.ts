@@ -16,6 +16,12 @@ export default defineConfig(({ command, mode }) => {
       host: "::",
       port: Number(process.env.PORT) || 3000,
     },
+    // `cloudflare:workers` only exists inside workerd; without this the client
+    // dependency scan fails, deps get discovered lazily, and open tabs break
+    // on mid-session re-optimization reloads.
+    optimizeDeps: {
+      exclude: ["cloudflare:workers"],
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
