@@ -1,12 +1,13 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useAdminAuth } from "@/admin/auth";
 import { Button, Card, CardTitle } from "@/index";
 import { supabase } from "@/integrations/supabase/client";
 import "@/admin/admin.css";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>) => ({ access: search["access"] === "denied" ? "denied" : undefined }),
   head: () => ({
     meta: [
       { title: "More or Less — Admin Sign In" },
@@ -15,6 +16,10 @@ export const Route = createFileRoute("/auth")({
         content: "Sign up or sign in with an admin team account for the More or Less ops portal.",
       },
       { name: "robots", content: "noindex" },
+      { property: "og:title", content: "More or Less — Admin Sign In" },
+      { property: "og:description", content: "Sign in to your More or Less admin team account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -24,29 +29,14 @@ type Mode = "sign-in" | "sign-up";
 
 function AuthPage() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { user, ready, signOutAdmin } = useAdminAuth();
+  const { access } = Route.useSearch();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    void supabase.auth.getUser().then(({ data }) => {
-      if (active) setSignedInEmail(data.user?.email ?? null);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setSignedInEmail(session?.user?.email ?? null);
-    });
-    return () => {
-      active = false;
-      sub.subscription.unsubscribe();
-    };
-  }, []);
-
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
@@ -57,7 +47,7 @@ function AuthPage() {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth` },
         });
         if (signUpError) throw signUpError;
         if (!data.session) {
@@ -83,16 +73,15 @@ function AuthPage() {
   async function handleSignOut() {
     setBusy(true);
     try {
-      await queryClient.cancelQueries();
-      queryClient.clear();
-      await supabase.auth.signOut();
-      navigate({ to: "/auth", replace: true });
+      await signOutAdmin();
     } finally {
       setBusy(false);
     }
   }
 
-  if (signedInEmail) {
+  if (!ready) return <main className="admin-signin"><p>Loading…</p></main>;
+
+  if (user) {
     return (
       <main className="admin-signin">
         <Card>
@@ -105,10 +94,11 @@ function AuthPage() {
             <div>
               <CardTitle>Signed in</CardTitle>
               <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
-                {signedInEmail}
+                {user.email}
               </p>
             </div>
           </div>
+          {access === "denied" ? <p className="admin-error" role="alert">Admin access is required. Ask an existing admin to grant access to your account.</p> : null}
           <p style={{ fontSize: 14 }}>
             <Link to="/admin">Continue to the admin portal</Link>
           </p>
@@ -132,7 +122,7 @@ function AuthPage() {
             />
             <div>
               <CardTitle>
-                {mode === "sign-in" ? "More or Less — Admin" : "Create admin account"}
+                {mode === "sign-in" ? "More or Less — Admin" : "Create team account"}
               </CardTitle>
               <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
                 {mode === "sign-in"
@@ -181,7 +171,13 @@ function AuthPage() {
                 ? "Sign in"
                 : "Sign up"}
           </Button>
-          <button
+          {mode === "sign-in" ? <Button type="button" variant="ghost" disabled={busy || !email} onClick={() => {
+            setBusy(true); setError(null);
+            void supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth` }).then(({ error: resetError }) => {
+              if (resetError) setError(resetError.message); else setNotice("Password reset email sent — check your inbox.");
+            }).finally(() => setBusy(false));
+          }}>Forgot password?</Button> : null}
+          <Button variant="ghost"
             type="button"
             className="admin-reset-link"
             disabled={busy}
@@ -192,7 +188,7 @@ function AuthPage() {
             }}
           >
             {mode === "sign-in" ? "Need an account? Sign up" : "Already have an account? Sign in"}
-          </button>
+          </Button>
         </form>
       </Card>
     </main>
