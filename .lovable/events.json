@@ -133,6 +133,45 @@
         }
       }
     },
+    "project.fact_lifecycle_action": {
+      "event_schema_version": 1,
+      "description": "A content-management create, import, edit, corrected replacement, or lifecycle transition completed or failed. Success records storage/review progress, not Foundry promotion or game deployment. Only action category and outcome are sent.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "action_category",
+          "outcome"
+        ],
+        "properties": {
+          "action_category": {
+            "type": "string",
+            "enum": [
+              "create",
+              "import",
+              "edit",
+              "corrected_replacement",
+              "reactivate",
+              "dispute",
+              "retire",
+              "lifecycle_transition"
+            ]
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "partial_success",
+              "failed"
+            ]
+          }
+        }
+      }
+    },
     "project.remote_config_save_attempted": {
       "event_schema_version": 1,
       "description": "A validated remote configuration save is sent, with broad changed categories only.",
