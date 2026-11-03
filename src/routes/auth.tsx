@@ -4,12 +4,16 @@ import { useAdminAuth } from "@/admin/auth";
 import { Button, Card, CardTitle } from "@/index";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 import "@lovable.dev/cloud-auth-js/styles.css";
 import "@/admin/admin.css";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { access?: string } => ({ access: search["access"] === "denied" ? "denied" : undefined }),
+  validateSearch: (search: Record<string, unknown>): { access?: string; next?: string } => ({
+    access: search["access"] === "denied" ? "denied" : undefined,
+    next: typeof search["next"] === "string" ? oauthReturnPath(search["next"]) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "More or Less — Admin Sign In" },
@@ -32,7 +36,8 @@ type Mode = "sign-in" | "sign-up";
 function AuthPage() {
   const navigate = useNavigate();
   const { user, ready, signOutAdmin } = useAdminAuth();
-  const { access } = Route.useSearch();
+  const { access, next } = Route.useSearch();
+  const returnTo = next && next !== "/" ? next : "/admin";
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +54,7 @@ function AuthPage() {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth` },
+          options: { emailRedirectTo: new URL(returnTo, window.location.origin).href },
         });
         if (signUpError) throw signUpError;
         if (!data.session) {
@@ -64,7 +69,7 @@ function AuthPage() {
         });
         if (signInError) throw signInError;
       }
-      navigate({ to: "/admin", replace: true });
+      await navigate({ href: returnTo, replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -75,14 +80,14 @@ function AuthPage() {
   async function handleLovableSignIn() {
     setBusy(true);
     setError(null);
-    const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: `${window.location.origin}/auth` });
+    const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
     if (result.error) {
       setError(result.error instanceof Error ? result.error.message : "Lovable sign-in failed.");
       setBusy(false);
       return;
     }
     if (result.redirected) return;
-    await navigate({ to: "/admin", replace: true });
+    await navigate({ href: returnTo, replace: true });
     setBusy(false);
   }
 
@@ -116,7 +121,7 @@ function AuthPage() {
           </div>
           {access === "denied" ? <p className="admin-error" role="alert">Admin access is required. Ask an existing admin to grant access to your account.</p> : null}
           <p style={{ fontSize: 14 }}>
-            <Link to="/admin">Continue to the admin portal</Link>
+            <Link to={returnTo}>Continue</Link>
           </p>
           <Button type="button" variant="ghost" onClick={() => void handleSignOut()} disabled={busy}>
             {busy ? "Signing out…" : "Sign out"}

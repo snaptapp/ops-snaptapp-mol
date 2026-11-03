@@ -13,6 +13,7 @@
 7. **Reconciliation:** Report only, never mutate Firestore or write `fact_count` from reconciliation.
 8. **Mobile UI:** Put shared overflow and touch rules in Arena tokens; use the admin drawer and labelled mobile record cards, retaining desktop tables and actions, because the public root redirects to Admin.
 9. **Backends:** Firebase remains the game data backend; Cloud accounts at `/auth` authenticate portal calls via `attachCloudAuth` and `requireCloudAdmin`. Verify the live Cloud user and protected `public.user_roles` row on every admin request, never Firebase claims or user-editable metadata. Use public build-time config as the canonical Worker's fallback; do not register a second bearer middleware. Role management uses Cloud RPCs with server-side authorization, while existing Firebase game-account utilities stay separate.
+10. **Agent integrations:** `/mcp` uses managed OAuth with the OAuth client claim required; each tool rechecks live Cloud admin identity and roles before lazy-loading Firebase read helpers. Keep tools read-only and project safe summaries, because Firebase service credentials do not provide caller authorization. Browser tools stay in their owning screen with fail-open static telemetry.
 
 
 ## Essential Commands

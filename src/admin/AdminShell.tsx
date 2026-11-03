@@ -8,6 +8,8 @@ import {
 } from "../../shared/fact-lifecycle-contract.gen";
 import { useAdminAuth } from "./auth";
 import { drawerKeyAction } from "./drawerKeyboard";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 import "./admin.css";
 
 type StatusTone = "lime" | "red" | "amber" | "purple" | "neutral";
@@ -72,6 +74,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useWebMCP({
+    name: "read_admin_navigation",
+    description: "Read the current admin page and available navigation destinations without changing the view.",
+    enabled: ready && Boolean(user),
+    annotations: { readOnlyHint: true },
+    execute: () => runWebMCPTool("read_admin_navigation", () => NAV.map((item) =>
+      `${pathname === item.to ? "[current] " : ""}${item.label}: ${item.to}`,
+    ).join("\n")),
+  });
 
   useEffect(() => setMenuOpen(false), [pathname]);
 

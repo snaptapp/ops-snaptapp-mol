@@ -7,6 +7,7 @@
 - [x] Cloudflare API reconnected in the new workspace (connection std_01m6g2m9pbehzryvxd5rm50kcw, gateway-backed)
 
 ## Pending (approved, not started)
+- [ ] Add protected MCP summaries and browser-local navigation tools; verify consent and access boundaries.
 - [ ] Verify signed-in portal access end-to-end — waiting for michael@snaptapp.us to create and confirm the first Cloud account.
 - [ ] Grounded Mod Queue Auto-Triager (mod-triage.server.ts, runModQueueAutoTriage, reports.tsx toolbar)
 - [ ] Flutter play_hub_screen refactor (needs new repo token + arena_kit recreation)

@@ -21,6 +21,11 @@ export async function authorizeCloudAdmin(
 export async function requireCloudAdmin() {
   const header = getRequestHeader("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  return cloudAdminForToken(token);
+}
+
+/** Shared live identity and role check for portal requests and verified MCP callers. */
+export async function cloudAdminForToken(token: string) {
   if (!token) throw new AuthError("Not signed in");
   // Public build-time config is also available on the canonical Worker. Never
   // use the service-role key to authorize a caller or trust decoded JWT claims.
