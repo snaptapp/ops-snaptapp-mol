@@ -40,6 +40,98 @@
           }
         }
       }
+    },
+    "project.analytics_summary_completed": {
+      "event_schema_version": 1,
+      "description": "The submitted insights request returned a non-empty AI summary.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "date_range_days",
+          "filled_rows"
+        ],
+        "properties": {
+          "date_range_days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "filled_rows": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "project.analytics_summary_failed": {
+      "event_schema_version": 1,
+      "description": "An submitted AI insights request failed, classified without exposing the error message or submitted content.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "date_range_days",
+          "filled_rows",
+          "error_category"
+        ],
+        "properties": {
+          "date_range_days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "filled_rows": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "error_category": {
+            "type": "string",
+            "enum": [
+              "timeout",
+              "rate_limit",
+              "access",
+              "validation",
+              "network",
+              "empty_response",
+              "service",
+              "unknown"
+            ]
+          }
+        }
+      }
+    },
+    "project.analytics_summary_requested": {
+      "event_schema_version": 1,
+      "description": "A validated insights form was submitted to request an AI summary. Date range length is inclusive; row count includes filled placement/count rows.",
+      "privacy": {
+        "contains_pii": false,
+        "purpose": "product_analytics"
+      },
+      "properties_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "date_range_days",
+          "filled_rows"
+        ],
+        "properties": {
+          "date_range_days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "filled_rows": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
     }
   }
 }

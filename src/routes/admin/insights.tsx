@@ -62,11 +62,32 @@ function InsightsPage() {
     setBusy(true);
     setError(null);
     setSummary(null);
+    const eventProperties = {
+      date_range_days: Math.floor((Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) / 86_400_000) + 1,
+      filled_rows: filled.length,
+    };
+    try {
+      window.__lovableEvents?.track?.("project.analytics_summary_requested", eventProperties);
+    } catch { /* Analytics must not interrupt a summary request. */ }
     try {
       const res = await summarize({ data: { startDate, endDate, rows: filled, notes: notes || undefined } });
       setSummary(res.summary);
+      try {
+        window.__lovableEvents?.track?.("project.analytics_summary_completed", eventProperties);
+      } catch { /* Analytics must not interrupt a completed summary. */ }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
+      const message = err instanceof Error ? err.message.toLowerCase() : "";
+      const errorCategory = /timed out|timeout|abort/.test(message) ? "timeout"
+        : /429|busy right now|rate limit/.test(message) ? "rate_limit"
+        : /401|403|not signed in|admin access|confirmed account/.test(message) ? "access"
+        : /validation|invalid|too_big|too_small/.test(message) ? "validation"
+        : /fetch|network|offline/.test(message) ? "network"
+        : /empty summary/.test(message) ? "empty_response"
+        : /request failed|configured/.test(message) ? "service" : "unknown";
+      try {
+        window.__lovableEvents?.track?.("project.analytics_summary_failed", { ...eventProperties, error_category: errorCategory });
+      } catch { /* Analytics must not interrupt error handling. */ }
     } finally {
       setBusy(false);
     }
