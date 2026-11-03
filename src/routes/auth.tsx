@@ -78,21 +78,21 @@ function AuthPage() {
     }
   }
 
-  async function handleLovableSignIn() {
+  async function handleLovableSignIn(provider: "lovable" | "google" | "apple" | "microsoft" = "lovable") {
     setBusy(true);
     setError(null);
     try {
-      const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
+      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
       if (result.error) throw result.error;
       if (result.redirected) return;
       try {
         window.__lovableEvents?.track?.("project.admin_auth_completed", {
-          mode: "sign_in", outcome: "authenticated", method: "lovable",
+          mode: "sign_in", outcome: "authenticated", method: provider,
         });
       } catch { /* Analytics must not interrupt sign-in. */ }
       await navigate({ href: returnTo, replace: true });
     } catch {
-      setError("We couldn’t complete Lovable sign-in. Please try again.");
+      setError("We couldn’t complete that sign-in. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -205,7 +205,12 @@ function AuthPage() {
                 ? "Sign in"
                 : "Send reset link"}
           </Button>
-          {mode === "sign-in" ? <button type="button" className="lovable-auth-button" disabled={busy} onClick={() => void handleLovableSignIn()}>Continue with Lovable</button> : null}
+          {mode === "sign-in" ? <div className="admin-auth-providers">
+            <button type="button" className="lovable-auth-button" disabled={busy} onClick={() => void handleLovableSignIn()}>Continue with Lovable</button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => void handleLovableSignIn("google")}>Continue with Google</Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => void handleLovableSignIn("apple")}>Continue with Apple</Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => void handleLovableSignIn("microsoft")}>Continue with Microsoft</Button>
+          </div> : null}
           <Button variant="ghost"
             type="button"
             disabled={busy}
