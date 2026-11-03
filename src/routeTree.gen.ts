@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 import { Route as AdminAuditRouteImport } from './routes/admin/audit'
@@ -23,6 +25,7 @@ import { Route as AdminPlayersRouteImport } from './routes/admin/players'
 import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminRolesRouteImport } from './routes/admin/roles'
 import { Route as AdminTaxonomyRouteImport } from './routes/admin/taxonomy'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiInternalDailyDraftsRouteImport } from './routes/api/internal/daily-drafts'
 import { Route as ApiPublicFirebaseConfigRouteImport } from './routes/api/public/firebase-config'
 import { Route as ApiInternalOpsAnalyticsActionRouteImport } from './routes/api/internal/ops/analytics/$action'
@@ -50,6 +53,17 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -104,6 +118,11 @@ const AdminTaxonomyRoute = AdminTaxonomyRouteImport.update({
   id: '/taxonomy',
   path: '/taxonomy',
   getParentRoute: () => AdminRoute,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiInternalDailyDraftsRoute = ApiInternalDailyDraftsRouteImport.update({
   id: '/api/internal/daily-drafts',
@@ -174,6 +193,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/config': typeof AdminConfigRoute
@@ -185,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/taxonomy': typeof AdminTaxonomyRoute
   '/admin/': typeof AdminIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/internal/daily-drafts': typeof ApiInternalDailyDraftsRoute
   '/api/public/firebase-config': typeof ApiPublicFirebaseConfigRoute
   '/api/internal/ops/analytics/$action': typeof ApiInternalOpsAnalyticsActionRoute
@@ -200,6 +222,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/config': typeof AdminConfigRoute
@@ -211,6 +235,7 @@ export interface FileRoutesByTo {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/taxonomy': typeof AdminTaxonomyRoute
   '/admin': typeof AdminIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/internal/daily-drafts': typeof ApiInternalDailyDraftsRoute
   '/api/public/firebase-config': typeof ApiPublicFirebaseConfigRoute
   '/api/internal/ops/analytics/$action': typeof ApiInternalOpsAnalyticsActionRoute
@@ -228,6 +253,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/config': typeof AdminConfigRoute
@@ -239,6 +266,7 @@ export interface FileRoutesById {
   '/admin/roles': typeof AdminRolesRoute
   '/admin/taxonomy': typeof AdminTaxonomyRoute
   '/admin/': typeof AdminIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/api/internal/daily-drafts': typeof ApiInternalDailyDraftsRoute
   '/api/public/firebase-config': typeof ApiPublicFirebaseConfigRoute
   '/api/internal/ops/analytics/$action': typeof ApiInternalOpsAnalyticsActionRoute
@@ -257,6 +285,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/config'
@@ -268,6 +298,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/taxonomy'
     | '/admin/'
+    | '/.lovable/oauth/consent'
     | '/api/internal/daily-drafts'
     | '/api/public/firebase-config'
     | '/api/internal/ops/analytics/$action'
@@ -283,6 +314,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/config'
@@ -294,6 +327,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/taxonomy'
     | '/admin'
+    | '/.lovable/oauth/consent'
     | '/api/internal/daily-drafts'
     | '/api/public/firebase-config'
     | '/api/internal/ops/analytics/$action'
@@ -310,6 +344,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
     | '/admin/analytics'
     | '/admin/audit'
     | '/admin/config'
@@ -321,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin/roles'
     | '/admin/taxonomy'
     | '/admin/'
+    | '/.lovable/oauth/consent'
     | '/api/internal/daily-drafts'
     | '/api/public/firebase-config'
     | '/api/internal/ops/analytics/$action'
@@ -338,6 +375,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiInternalDailyDraftsRoute: typeof ApiInternalDailyDraftsRoute
   ApiPublicFirebaseConfigRoute: typeof ApiPublicFirebaseConfigRoute
   ApiInternalOpsAnalyticsActionRoute: typeof ApiInternalOpsAnalyticsActionRoute
@@ -372,6 +412,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -450,6 +504,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/taxonomy'
       preLoaderRoute: typeof AdminTaxonomyRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/internal/daily-drafts': {
       id: '/api/internal/daily-drafts'
@@ -565,6 +626,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiInternalDailyDraftsRoute: ApiInternalDailyDraftsRoute,
   ApiPublicFirebaseConfigRoute: ApiPublicFirebaseConfigRoute,
   ApiInternalOpsAnalyticsActionRoute: ApiInternalOpsAnalyticsActionRoute,
