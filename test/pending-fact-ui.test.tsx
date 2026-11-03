@@ -1,9 +1,11 @@
 import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type MutationOptions = {
   mutationFn?: () => Promise<unknown> | unknown;
+  onSuccess?: (result: Record<string, unknown>, next?: string) => unknown;
+  onError?: (error: Error, next?: string) => unknown;
 };
 
 const harness = vi.hoisted(() => {
@@ -95,7 +97,7 @@ vi.mock("@/lib/admin/taxonomy", () => ({
 
 vi.mock("@/lib/admin/contract", () => ({
   QK: { count: "count" },
-  STATUS: { active: "active", pending: "pending" },
+  STATUS: { active: "active", pending: "pending", retired: "retired", disputed: "disputed" },
 }));
 
 import {
@@ -215,5 +217,65 @@ describe("pending fact admission UI", () => {
     expect(html).toContain("Import facts from CSV");
     expect(html).toContain(PENDING_ADMISSION_COPY);
     expect(html).toContain("admin-toolbar");
+  });
+});
+
+describe("fact lifecycle analytics", () => {
+  const track = vi.fn();
+  beforeEach(() => {
+    harness.mutationOptions.length = 0;
+    track.mockClear();
+    vi.stubGlobal("window", { __lovableEvents: { track } });
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("records creation only after success, not form rendering", async () => {
+    renderNewForm();
+    expect(track).not.toHaveBeenCalled();
+    await harness.mutationOptions.at(-1)?.onSuccess?.({});
+    expect(track.mock.calls).toEqual([["project.fact_lifecycle_action", { action_category: "create", outcome: "succeeded" }]]);
+  });
+
+  it("records a failed create without content or the error message", () => {
+    renderNewForm();
+    harness.mutationOptions.at(-1)?.onError?.(new Error("Private fact text https://source.example"));
+    expect(track.mock.calls).toEqual([["project.fact_lifecycle_action", { action_category: "create", outcome: "failed" }]]);
+  });
+
+  it.each([
+    [true, false, "succeeded"],
+    [false, true, "partial_success"],
+    [false, false, "failed"],
+  ])("records import outcomes without treating partial results as complete", (successful, partialSuccess, outcome) => {
+    renderImport();
+    harness.mutationOptions.at(-1)?.onSuccess?.({ successful, partialSuccess, errors: ["Private content"], counts: { persisted: 1 } });
+    expect(track.mock.calls).toEqual([["project.fact_lifecycle_action", { action_category: "import", outcome }]]);
+  });
+
+  it("records rejected import requests", () => {
+    renderImport();
+    harness.mutationOptions.at(-1)?.onError?.(new Error("Private error"));
+    expect(track.mock.calls).toEqual([["project.fact_lifecycle_action", { action_category: "import", outcome: "failed" }]]);
+  });
+
+  it.each([["retired", "retire"], ["disputed", "dispute"], ["active", "reactivate"]])("records lifecycle category %s and its result", async (next, action_category) => {
+    renderEditor();
+    const transition = harness.mutationOptions[1];
+    await transition?.onSuccess?.({}, next);
+    transition?.onError?.(new Error("Private error"), next);
+    expect(track.mock.calls).toEqual([
+      ["project.fact_lifecycle_action", { action_category, outcome: "succeeded" }],
+      ["project.fact_lifecycle_action", { action_category, outcome: "failed" }],
+    ]);
+  });
+
+  it("records edit success and failure", async () => {
+    renderEditor();
+    await harness.mutationOptions[0]?.onSuccess?.({});
+    harness.mutationOptions[0]?.onError?.(new Error("Private error"));
+    expect(track.mock.calls).toEqual([
+      ["project.fact_lifecycle_action", { action_category: "edit", outcome: "succeeded" }],
+      ["project.fact_lifecycle_action", { action_category: "edit", outcome: "failed" }],
+    ]);
   });
 });
