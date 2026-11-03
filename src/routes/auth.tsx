@@ -7,6 +7,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { oauthReturnPath } from "@/lib/oauth-return-path";
 import "@lovable.dev/cloud-auth-js/styles.css";
 import "@/admin/admin.css";
+import "@/admin/auth.css";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -80,15 +81,16 @@ function AuthPage() {
   async function handleLovableSignIn() {
     setBusy(true);
     setError(null);
-    const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
-    if (result.error) {
-      setError(result.error instanceof Error ? result.error.message : "Lovable sign-in failed.");
+    try {
+      const result = await lovable.auth.signInWithOAuth("lovable", { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      await navigate({ href: returnTo, replace: true });
+    } catch {
+      setError("We couldn’t complete Lovable sign-in. Please try again.");
+    } finally {
       setBusy(false);
-      return;
     }
-    if (result.redirected) return;
-    await navigate({ href: returnTo, replace: true });
-    setBusy(false);
   }
 
   async function handleSignOut() {
@@ -105,27 +107,34 @@ function AuthPage() {
   if (user) {
     return (
       <main className="admin-signin">
-        <Card>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+        <Card className="admin-auth-panel">
+          <div className="admin-auth-brand">
             <img
               src="/more-or-less-icon.png"
               alt="More or Less"
-              style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "contain" }}
             />
             <div>
-              <CardTitle>Signed in</CardTitle>
-              <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
+              <CardTitle>MORE OR LESS</CardTitle>
+              <p className="admin-auth-copy">
                 {user.email}
               </p>
             </div>
           </div>
-          {access === "denied" ? <p className="admin-error" role="alert">Admin access is required. Ask an existing admin to grant access to your account.</p> : null}
-          <p style={{ fontSize: 14 }}>
-            <Link to={returnTo}>Continue</Link>
-          </p>
-          <Button type="button" variant="ghost" onClick={() => void handleSignOut()} disabled={busy}>
-            {busy ? "Signing out…" : "Sign out"}
-          </Button>
+          <section className="admin-auth-status" aria-labelledby="auth-status-title">
+            <p className="ds-label">{access === "denied" ? "ACCESS NOT GRANTED" : "SIGNED IN"}</p>
+            <h1 id="auth-status-title">{access === "denied" ? "You’re signed in. Access is next." : "Ready for the portal."}</h1>
+            <p className="admin-auth-copy">{access === "denied"
+              ? "This account needs an admin role. An existing admin can grant access from Team accounts. If access was just granted, check again."
+              : "Your account is connected. Continue to the admin portal."}</p>
+          </section>
+          <div className="admin-auth-actions">
+            <Link to={returnTo} className="ds-button ds-button--primary ds-button--md ds-focusable">
+              {access === "denied" ? "CHECK ACCESS AGAIN" : "OPEN ADMIN PORTAL"}
+            </Link>
+            <Button type="button" variant="ghost" onClick={() => void handleSignOut()} disabled={busy}>
+              {busy ? "Signing out…" : "Use a different account"}
+            </Button>
+          </div>
         </Card>
       </main>
     );
@@ -133,19 +142,18 @@ function AuthPage() {
 
   return (
     <main className="admin-signin">
-      <Card>
+      <Card className="admin-auth-panel">
         <form onSubmit={(event) => void handleSubmit(event)}>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+          <div className="admin-auth-brand">
             <img
               src="/more-or-less-icon.png"
               alt="More or Less"
-              style={{ width: "40px", height: "40px", borderRadius: "8px", objectFit: "contain" }}
             />
             <div>
               <CardTitle>
                 {mode === "sign-in" ? "More or Less — Admin" : "Create team account"}
               </CardTitle>
-              <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 14, margin: "2px 0 0" }}>
+              <p className="admin-auth-copy">
                 {mode === "sign-in"
                   ? "Sign in with your admin team account."
                   : "Sign up with your team email — confirm it, then sign in."}
@@ -177,9 +185,9 @@ function AuthPage() {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-          {error ? <p className="admin-error">{error}</p> : null}
+          {error ? <p className="admin-error" role="alert">{error}</p> : null}
           {notice ? (
-            <p style={{ color: "var(--ds-arena-color-primary)", fontSize: 13, margin: 0 }}>
+            <p className="admin-auth-notice" role="status">
               {notice}
             </p>
           ) : null}
