@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, Navigate, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAdminAuth } from "@/admin/auth";
 import { Button, Card, CardTitle } from "@/index";
 import { supabase } from "@/integrations/supabase/client";
@@ -82,7 +82,9 @@ function AuthPage() {
     setBusy(true);
     setError(null);
     try {
-      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: new URL(next ? returnTo : "/auth", window.location.origin).href });
+      const callback = new URL("/auth", window.location.origin);
+      if (next) callback.searchParams.set("next", returnTo);
+      const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: callback.href });
       if (result.error) throw result.error;
       if (result.redirected) return;
       try {
@@ -108,6 +110,8 @@ function AuthPage() {
   }
 
   if (!ready) return <main className="admin-signin"><p>Loading…</p></main>;
+
+  if (user && access !== "denied") return <Navigate to={returnTo} replace />;
 
   if (user) {
     return (
