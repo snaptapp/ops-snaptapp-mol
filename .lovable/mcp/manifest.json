@@ -13,7 +13,7 @@
   "mcp": {
     "server": {
       "name": "more-or-less-admin-site",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": "more or less admin site"
     },
     "tools": [
@@ -56,6 +56,210 @@
           "type": "object",
           "properties": {},
           "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_pending_reports",
+        "title": "List pending reports",
+        "description": "Read up to 50 pending disputes and linked fact evidence with current snapshot tokens, excluding player identities and feedback.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 50
+            },
+            "offset": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000,
+              "default": 0
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_report_review_context",
+        "title": "Get report review context",
+        "description": "Read a current pending report, linked facts, source URLs, allowed actions and snapshot token for your own web-grounded review; no model call or writes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "reportId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "pattern": "^[^/]+$"
+            }
+          },
+          "required": [
+            "reportId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "triage_pending_reports",
+        "title": "Triage and resolve pending reports",
+        "description": "Validate up to 50 externally sourced reviews; dry-run by default, apply only explicitly confirmed high-confidence non-conflicting allowed resolutions and audit the admin caller.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "reviews": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "reportId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "^[^/]+$"
+                  },
+                  "expectedSnapshot": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "verdict": {
+                    "type": "string",
+                    "enum": [
+                      "uphold_fact",
+                      "fix_number",
+                      "retire_fact",
+                      "resolve_as_is",
+                      "reject",
+                      "unclear"
+                    ]
+                  },
+                  "confidence": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high"
+                    ]
+                  },
+                  "correctedNumber": {
+                    "type": "number"
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1200
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "format": "uri",
+                          "maxLength": 500
+                        },
+                        "title": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "excerpts": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 800
+                          },
+                          "minItems": 1,
+                          "maxItems": 3
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "period": {
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "stance": {
+                          "type": "string",
+                          "enum": [
+                            "supports",
+                            "contradicts",
+                            "unclear"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "url",
+                        "title",
+                        "excerpts",
+                        "value",
+                        "unit",
+                        "stance"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "maxItems": 8
+                  }
+                },
+                "required": [
+                  "reportId",
+                  "expectedSnapshot",
+                  "verdict",
+                  "confidence",
+                  "rationale",
+                  "sources"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 50,
+              "description": "Sourced reviews produced by your own assistant/web search; up to 50. Fetch current snapshots first."
+            },
+            "dryRun": {
+              "type": "boolean",
+              "default": true,
+              "description": "Defaults to true: validate only, without writes."
+            },
+            "confirmApply": {
+              "type": "boolean",
+              "default": false,
+              "description": "Must be true with dryRun=false after the user explicitly authorizes applying eligible resolutions."
+            }
+          },
+          "required": [
+            "reviews"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       }
