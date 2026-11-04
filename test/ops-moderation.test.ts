@@ -135,6 +135,14 @@ describe("ops moderation queue", () => {
     expect(firestoreDouble().document("trivia_reports/r2")?.data["status"]).toBe("rejected");
   });
 
+  it("rejects a fact changed since external review inside the transaction", async () => {
+    await expect(moderationAct({ reportId: "r1", action: "fix_number", correctedNumber: 1977,
+      expectedFact: { id: "f1", trueNumber: 1976, status: "active" },
+    })).rejects.toThrow("Fact changed since review");
+    expect(firestoreDouble().document("fact_bank/f1")?.data["true_number"]).toBe(1978);
+    expect(firestoreDouble().document("trivia_reports/r1")?.data["status"]).toBe("pending_review");
+  });
+
   it("refuses a button the report does not show", async () => {
     await expect(moderationAct({ reportId: "r2", action: "retire_fact" })).rejects.toThrow(
       /not available/,

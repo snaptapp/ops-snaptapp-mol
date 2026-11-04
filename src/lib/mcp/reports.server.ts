@@ -60,6 +60,7 @@ export async function triageExternalReviews(
       if (decision.auto && !dryRun && recommendation.action) {
         if (control?.signal.aborted) break;
         await moderationAct({ reportId: input.reportId, action: recommendation.action,
+          expectedFact: item.fact ? { id: item.fact.id, trueNumber: item.fact.true_number, status: item.fact.status } : undefined,
           correctedNumber: recommendation.correctedNumber, note: `External MCP review: ${input.rationale}`,
           copilot: { verdict: review.verdict, confidence: review.confidence, score: review.policy.score,
             needsReview: review.policy.needsReview, sources, warnings: review.policy.reasons,

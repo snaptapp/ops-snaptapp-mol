@@ -114,6 +114,7 @@ export interface ModerationFactUpdates {
 }
 
 export interface ModerationActInput {
+  expectedFact?: { id: string; trueNumber: number | null; status: string };
   reportId: string;
   action: ModerationAction;
   correctedNumber?: number;
@@ -379,6 +380,7 @@ export async function moderationAct(input: ModerationActInput, actor: AdminUser 
     retireFactIds: button.retireFactIds,
     admin: actor,
     requirePending: true,
+    expectedFact: input.expectedFact,
     audit,
     auditAfter: {
       action: input.action,

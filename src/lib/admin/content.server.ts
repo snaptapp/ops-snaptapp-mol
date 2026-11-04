@@ -2253,6 +2253,7 @@ export async function resolveReport(input: {
   auditAfter?: Record<string, unknown>;
   /** Agent resolutions must not overwrite another moderator's completed work. */
   requirePending?: boolean;
+  expectedFact?: { id: string; trueNumber: number | null; status: string };
 }): Promise<{ ok: true }> {
   const now = new Date().toISOString();
   const actor = input.admin?.email ?? input.admin?.uid ?? "system";
@@ -2268,6 +2269,13 @@ export async function resolveReport(input: {
     const reportData = reportDoc.data;
     if (input.requirePending && reportData["status"] !== "pending_review") {
       throw new Error("Report is no longer pending; no changes were made.");
+    }
+    if (input.expectedFact) {
+      const expected = input.expectedFact;
+      const current = await tx.get(`fact_bank/${expected.id}`);
+      if (!current || current.data["true_number"] !== expected.trueNumber || current.data["status"] !== expected.status) {
+        throw new Error("Fact changed since review; no changes were made.");
+      }
     }
     const resolveReportDoc = (note: string, extra?: Record<string, unknown>, deletes?: string[]) => {
       tx.update(
