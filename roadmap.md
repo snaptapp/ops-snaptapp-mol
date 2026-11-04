@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Current
-- [ ] Fix lockfile tests without Git mutations, rerun the full quality gate, and verify the preview build.
-- [ ] Verify moderation dry-run project fallback in the live preview — fallback implemented and 21 targeted tests passed; preview still serves old code while the quality gate is blocked by sandbox-denied Git operations in lockfile tests.
+- [x] Fix lockfile tests without Git mutations and valid randomized audit inputs; all nine quality-gate checks and 708 tests passed, automatic preview build reports OK, signed-in browser entry verified.
+- [ ] Verify moderation dry-run project fallback in the live preview — fallback implemented and 21 targeted tests passed; build blocker removed, real grounded dry-run verification still pending.
 - [x] Correct Lovable connection detection and prevent Google Connect from replacing the current account — five tests passed; signed-in browser check verified with refreshed modules. Google linking remains blocked by disabled manual linking and missing managed linking support.
 - [ ] Verify new-account creation and password email on canonical ops host — requires managed privileged Cloud account creation on that host and an approved recipient for the end-to-end email check.
 
