@@ -262,13 +262,41 @@ describe("Task 7 copilot exact source comparison", () => {
       compareSourceValues({ token: "1e999999999" }, { token: "1e999999999" }),
     ).toBe("incomparable");
     expect(compareSourceValues({ token: "1e-5000" }, { token: "1e-5000" })).toBe("incomparable");
-    // A stated unit the registry does not know is incomparable, never a match.
-    expect(
-      compareSourceValues({ token: "5", unit: "smoots" }, { token: "5", unit: "smoots" }),
-    ).toBe("incomparable");
     expect(
       compareSourceValues({ token: "1000", unit: "meters" }, { token: "1", unit: "kilometers" }),
     ).toBe("agree");
+  });
+
+  it("reconciles identical unit strings the registry does not know", () => {
+    // Identical custom units agree or conflict on the exact value.
+    expect(
+      compareSourceValues({ token: "5", unit: "smoots" }, { token: "5", unit: "smoots" }),
+    ).toBe("agree");
+    expect(
+      compareSourceValues({ token: "5", unit: "smoots" }, { token: "6", unit: "smoots" }),
+    ).toBe("conflict");
+    expect(
+      compareSourceValues({ token: "1206", unit: "yards" }, { token: "1206", unit: "yards" }),
+    ).toBe("agree");
+    // Different unknown units remain incomparable.
+    expect(
+      compareSourceValues({ token: "5", unit: "smoots" }, { token: "5", unit: "widgets" }),
+    ).toBe("incomparable");
+    // A registry unit against an unknown unit is still incomparable.
+    expect(
+      compareSourceValues({ token: "5", unit: "smoots" }, { token: "5", unit: "meters" }),
+    ).toBe("incomparable");
+  });
+
+  it("does not block a comparison when only one side states a period", () => {
+    expect(compareSourceValues({ token: "1206", period: "2019" }, { token: "1206" })).toBe("agree");
+    expect(compareSourceValues({ token: "1206" }, { token: "1207", period: "2019" })).toBe("conflict");
+  });
+
+  it("treats two explicit, different periods as incomparable", () => {
+    expect(
+      compareSourceValues({ token: "1206", period: "2019" }, { token: "1206", period: "2020" }),
+    ).toBe("incomparable");
   });
 
   it("conflicts only on exact mismatch, not percentage tolerance", () => {

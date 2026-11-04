@@ -71,7 +71,7 @@ export interface CopilotDuplicateResolution {
  * - Sources conflict (exact mismatch after unit normalization, or a source
  *   contradicts the recommended number): confidence capped at "low", each
  *   conflicting source flagged.
- * - Sources incomparable (different period, unknown or cross-measure unit,
+ * - Sources incomparable (two different explicit periods, unknown or cross-measure unit,
  *   unparseable token): marked needsReview without lowering confidence;
  *   absence of agreement is not proof of conflict.
  * - Model says "low": kept low; recommendation still shown but marked for closer review.
@@ -471,8 +471,8 @@ function sourceRef(
 /**
  * Compare every valued source against the recommendation target and against
  * each other. A "conflict" is an exact mismatch after unit normalization on
- * the same period; an "incomparable" pair cannot be reconciled (different
- * period, unknown or cross-measure unit, unparseable token) and marks the
+ * the same period; an "incomparable" pair cannot be reconciled (two different
+ * explicit periods, unknown or cross-measure unit, unparseable token) and marks the
  * review for a human without asserting a conflict.
  */
 export function applySourcePolicy(
@@ -541,7 +541,7 @@ export function applySourcePolicy(
     reasons.push(`${sources.filter((s) => s.conflicting).length} source(s) conflict with the recommendation or each other (exact mismatch after unit/period normalization).`);
   }
   if (incomparable) {
-    reasons.push(`${sources.filter((s) => s.incomparable).length} source(s) could not be reconciled (different period or incompatible unit); not counted as agreement or conflict.`);
+    reasons.push(`${sources.filter((s) => s.incomparable).length} source(s) could not be reconciled (two different periods or incompatible unit); not counted as agreement or conflict.`);
   }
   if (modelConfidence === "low" && !reasons.length) reasons.push("Copilot reported low confidence.");
   const supporting = sources.filter((s) => !s.conflicting && !s.incomparable && s.stance === "supports");

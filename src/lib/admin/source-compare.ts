@@ -131,19 +131,33 @@ function canonicalUnit(unit: string | undefined): string | null {
 
 /**
  * Compare two stated source values exactly.
- *  - "incomparable": different periods, units unknown to the registry, units
- *    of different base measures, or an unparseable token. Incomparable is not
- *    a conflict and not a support: the values simply cannot be reconciled.
- *  - "conflict": same period, reconcilable units, and the exact converted
+ *  - "incomparable": two explicit periods that differ, a unit that is unknown
+ *    to the registry on either side (unless both sides state the same unit
+ *    string), units of different base measures, or an unparseable token.
+ *    Incomparable is not a conflict and not a support: the values simply
+ *    cannot be reconciled.
+ *  - "conflict": reconcilable units (or identical unit strings), and the exact
  *    values differ by any amount.
- *  - "agree": same period and the exact converted values are equal.
+ *  - "agree": reconcilable units and the exact values are equal.
+ * A period stated on only one side is not a mismatch; it is unknown on the
+ * other side and does not block the comparison.
  */
 export function compareSourceValues(a: SourceValueRef, b: SourceValueRef): SourceComparison {
-  if (normalizePeriod(a.period) !== normalizePeriod(b.period)) return "incomparable";
+  const aPeriod = normalizePeriod(a.period);
+  const bPeriod = normalizePeriod(b.period);
+  if (aPeriod && bPeriod && aPeriod !== bPeriod) return "incomparable";
 
   const aRat = parseDecimalRational(a.token);
   const bRat = parseDecimalRational(b.token);
   if (!aRat || !bRat) return "incomparable";
+
+  // Identical unit strings reconcile directly, even when the registry does
+  // not know the unit (sports and discrete-count units such as "yards").
+  const aNormUnit = normalizeUnit(a.unit ?? "");
+  const bNormUnit = normalizeUnit(b.unit ?? "");
+  if (aNormUnit && aNormUnit === bNormUnit) {
+    return equal(aRat, bRat) ? "agree" : "conflict";
+  }
 
   const aUnit = canonicalUnit(a.unit);
   const bUnit = canonicalUnit(b.unit);

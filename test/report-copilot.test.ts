@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { autoTriageDecision } from "@/lib/admin/mod-triage";
 import {
   applySourcePolicy,
   reviewReportWithCopilot,
@@ -175,6 +176,46 @@ describe("report-copilot", () => {
     expect(sources[0].incomparable).toBeFalsy();
     expect(sources[1].incomparable).toBe(true);
     expect(sources[1].conflicting).toBe(false);
+  });
+
+  it("reconciles a unit-only fact with dated sources so auto-triage can proceed", () => {
+    // Mirrors the blocked reports: the fact has a registry-unknown unit and no
+    // as_of_year, while each source states the figure for a 2019 season.
+    const sources: CopilotSource[] = [
+      {
+        url: "https://stats.example.com/player",
+        title: "Player stats",
+        excerpts: ["1,206 rushing yards in 2019."],
+        value: 1206,
+        value_token: "1206",
+        unit: "yards",
+        period: "2019",
+        stance: "supports",
+        conflicting: false,
+      },
+      {
+        url: "https://league.example.org/season",
+        title: "Season recap",
+        excerpts: ["1206 yards rushing, 2019 season."],
+        value: 1206,
+        value_token: "1206",
+        unit: "yards",
+        period: "2019",
+        stance: "supports",
+        conflicting: false,
+      },
+    ];
+
+    const { confidence, policy } = applySourcePolicy(sources, 1206, "high", { unit: "yards" });
+    expect(sources.map((s) => s.incomparable)).toEqual([false, false]);
+    expect(sources.map((s) => s.conflicting)).toEqual([false, false]);
+    expect(confidence).toBe("high");
+
+    const decision = autoTriageDecision(
+      { verdict: "reject", confidence, sources, policy } as never,
+      { apply: true, action: "reject", reason: "r" } as never,
+    );
+    expect(decision.auto).toBe(true);
   });
 
   it("handles duplicate fact candidates and parses duplicate_resolution", async () => {
