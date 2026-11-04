@@ -196,6 +196,7 @@ Rules:
   - edit_fact when question phrasing, unit, context, or plausible bounds need updating.
   - resolve_as_is when a fact was flagged with linter warnings but is verified correct and acceptable as-is (clearing false positive flags).
   - retire_fact when the fact is unverifiable, outdated, or fundamentally broken.
+- Wikipedia rule: Wikipedia is never the tie-breaker. If your sources contradict each other and one of them is Wikipedia (any wikipedia.org URL), search for an authoritative non-Wikipedia replacement source (official records, the league/organization, a primary publication) that states the figure, and cite that instead. If no non-Wikipedia source settles it, use verdict unclear and say so in the rationale.
 - Only include suggested fields you would change. true_number must be a single finite number, never a range.`;
 
 function clean(value: unknown, max = 800): string | undefined {

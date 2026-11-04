@@ -30,6 +30,24 @@ function host(url: string): string {
   }
 }
 
+/** True for any Wikipedia host (en.wikipedia.org, en.m.wikipedia.org, wikipedia.org). */
+export function isWikipediaUrl(url: string): boolean {
+  const h = host(url);
+  return h === "wikipedia.org" || h.endsWith(".wikipedia.org");
+}
+
+/**
+ * Wikipedia rule: when sources contradict each other and one of the disputed
+ * sources is Wikipedia, the claim is not auto-resolved. Wikipedia is never the
+ * tie-breaker; a non-Wikipedia replacement source must be found first.
+ */
+export function needsWikipediaReplacement(
+  sources: Pick<CopilotReview["sources"][number], "url" | "conflicting" | "stance">[],
+): boolean {
+  const disputed = sources.some((s) => s.conflicting || s.stance === "contradicts");
+  return disputed && sources.some((s) => isWikipediaUrl(s.url));
+}
+
 export function autoTriageDecision(
   review: Pick<CopilotReview, "verdict" | "confidence" | "sources" | "policy">,
   recommendation: Pick<ModerationRecommendation, "apply" | "action" | "reason">,
@@ -42,6 +60,9 @@ export function autoTriageDecision(
   }
   if (review.confidence !== "high" || review.policy.needsReview) {
     return { auto: false, reason: `Confidence is ${review.confidence}; only high confidence is automatic.` };
+  }
+  if (needsWikipediaReplacement(review.sources)) {
+    return { auto: false, reason: "Sources contradict and one is Wikipedia; find a non-Wikipedia replacement source before any automatic action." };
   }
   if (review.sources.some((s) => s.conflicting || s.stance === "contradicts" || s.incomparable)) {
     return { auto: false, reason: "At least one source conflicts or cannot be compared." };
