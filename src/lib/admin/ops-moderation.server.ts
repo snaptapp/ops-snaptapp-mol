@@ -378,6 +378,7 @@ export async function moderationAct(input: ModerationActInput, actor: AdminUser 
     keepFactId: button.keepFactId,
     retireFactIds: button.retireFactIds,
     admin: actor,
+    requirePending: true,
     audit,
     auditAfter: {
       action: input.action,

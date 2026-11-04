@@ -2251,6 +2251,8 @@ export async function resolveReport(input: {
   audit?: PreparedAuditEntry;
   /** Caller-supplied payload recorded as the staged audit's `after`. */
   auditAfter?: Record<string, unknown>;
+  /** Agent resolutions must not overwrite another moderator's completed work. */
+  requirePending?: boolean;
 }): Promise<{ ok: true }> {
   const now = new Date().toISOString();
   const actor = input.admin?.email ?? input.admin?.uid ?? "system";
@@ -2264,6 +2266,9 @@ export async function resolveReport(input: {
     const reportDoc = await tx.get(reportPath);
     if (!reportDoc) throw new Error(`Report ${input.reportId} not found`);
     const reportData = reportDoc.data;
+    if (input.requirePending && reportData["status"] !== "pending_review") {
+      throw new Error("Report is no longer pending; no changes were made.");
+    }
     const resolveReportDoc = (note: string, extra?: Record<string, unknown>, deletes?: string[]) => {
       tx.update(
         reportPath,

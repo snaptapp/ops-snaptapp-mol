@@ -129,6 +129,12 @@ describe("ops moderation queue", () => {
     );
   });
 
+  it("cannot apply a second resolution to an already completed report", async () => {
+    await moderationAct({ reportId: "r2", action: "reject" });
+    await expect(moderationAct({ reportId: "r2", action: "reject" })).rejects.toThrow("no longer pending");
+    expect(firestoreDouble().document("trivia_reports/r2")?.data["status"]).toBe("rejected");
+  });
+
   it("refuses a button the report does not show", async () => {
     await expect(moderationAct({ reportId: "r2", action: "retire_fact" })).rejects.toThrow(
       /not available/,
