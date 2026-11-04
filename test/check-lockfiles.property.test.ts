@@ -18,7 +18,6 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import fc from "fast-check";
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   mkdtempSync,
@@ -50,7 +49,7 @@ interface LockfileCheckModule {
     trackedPaths: Iterable<string>;
     onDiskPaths?: Iterable<string>;
   }): LockfileOutcome;
-  runLockfileCheck(cwd?: string, options?: { spawn: typeof spawnSync }): LockfileOutcome;
+  runLockfileCheck(cwd?: string, options?: { spawn: (command: string, args: string[]) => { status: number; stdout: string; stderr: string } }): LockfileOutcome;
 }
 
 // `scripts/check-lockfiles.mjs` is a plain Node ESM script with no type
@@ -333,7 +332,7 @@ describe(
             stdout: args[0] === "rev-parse" ? `${root}\n` : `${repoCase.trackedPaths.join("\0")}\0`,
             stderr: "",
           }));
-          const outcome = runLockfileCheck(root, { spawn: tracking as typeof spawnSync });
+          const outcome = runLockfileCheck(root, { spawn: tracking });
           expect(tracking.mock.calls.map(([command, args]) => [command, args])).toEqual([
             ["git", ["rev-parse", "--show-toplevel"]],
             ["git", ["ls-files", "-z", "--full-name"]],
