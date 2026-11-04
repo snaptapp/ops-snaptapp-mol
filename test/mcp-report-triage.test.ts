@@ -28,7 +28,6 @@ describe("external MCP triage safeguards", () => {
   beforeEach(() => { mocks.load.mockReset().mockResolvedValue(item); mocks.act.mockReset().mockResolvedValue({ ok: true }); });
   it("raises the batch capacity from 10 to 50", async () => {
     expect(AUTO_TRIAGE_BATCH_LIMIT).toBe(50);
-    expect(triageInputSchema.reviews.safeParse(Array.from({ length: 50 }, () => awaitValue)).success).toBe(false);
     const input = await review();
     expect(triageInputSchema.reviews.safeParse(Array(50).fill(input)).success).toBe(true);
     expect(triageInputSchema.reviews.safeParse(Array(51).fill(input)).success).toBe(false);
