@@ -132,8 +132,8 @@ export function classifyLockfiles({ trackedPaths, onDiskPaths = [] }) {
  * Resolves the git working-tree root containing `cwd`.
  * @throws {GitTrackingUnavailableError}
  */
-export function resolveRepositoryRoot(cwd) {
-  const result = spawnSync("git", ["rev-parse", "--show-toplevel"], {
+export function resolveRepositoryRoot(cwd, spawn = spawnSync) {
+  const result = spawn("git", ["rev-parse", "--show-toplevel"], {
     cwd,
     encoding: "utf8",
     windowsHide: true,
@@ -162,8 +162,8 @@ export function resolveRepositoryRoot(cwd) {
  * Lists every path git tracks in `root`, relative to `root`.
  * @throws {GitTrackingUnavailableError}
  */
-export function listTrackedPaths(root) {
-  const result = spawnSync("git", ["ls-files", "-z", "--full-name"], {
+export function listTrackedPaths(root, spawn = spawnSync) {
+  const result = spawn("git", ["ls-files", "-z", "--full-name"], {
     cwd: root,
     encoding: "utf8",
     windowsHide: true,
@@ -220,14 +220,15 @@ export function findOnDiskLockfiles(root) {
  * Returns the outcome instead of writing or exiting, so tests can assert on it.
  *
  * @param {string} [cwd]
+ * @param {{ spawn?: typeof spawnSync }} [options] Read-only tracking query adapter for tests.
  * @returns {{ ok: boolean, exitCode: number, stdout: string[], stderr: string[] }}
  */
-export function runLockfileCheck(cwd = process.cwd()) {
+export function runLockfileCheck(cwd = process.cwd(), { spawn = spawnSync } = {}) {
   let root;
   let trackedPaths;
   try {
-    root = resolveRepositoryRoot(cwd);
-    trackedPaths = listTrackedPaths(root);
+    root = resolveRepositoryRoot(cwd, spawn);
+    trackedPaths = listTrackedPaths(root, spawn);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     return {

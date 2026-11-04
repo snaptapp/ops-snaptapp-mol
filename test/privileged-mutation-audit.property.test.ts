@@ -310,7 +310,7 @@ const slugArb = fc
 /** Non-empty text with at least one alphanumeric, so `normalizeKey` is stable. */
 const wordArb = fc
   .tuple(slugArb, fc.string({ maxLength: 6 }))
-  .map(([slug, tail]) => `${slug}${tail}`.trim() || slug);
+  .map(([slug, tail]) => `word_${slug}${tail}`.trim());
 
 const SEED_FACT = {
   subject: "Seeded subject",
