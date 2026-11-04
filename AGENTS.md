@@ -17,6 +17,7 @@
 11. **Auth presentation:** Keep auth-screen layout in `src/admin/auth.css`; authenticated callbacks automatically navigate through the protected portal gate, while denied access retains explicit retry without redirect loops. OAuth returns to public `/auth` with a sanitized destination, never directly to protected pages.
 12. **Admin onboarding:** Account creation lazy-loads the privileged Cloud client only after live admin middleware; role grants use the caller-authorized RPC, and password setup uses email recovery without sharing temporary passwords. External hosts without managed account-creation credentials fail closed for new accounts.
 13. **Account identities:** Normalize managed identity provider identifiers for display; never use managed OAuth sign-in as an account-link operation, because it can replace the current admin session. Fail clearly without redirecting when linking is unavailable.
+14. **Grounded review configuration:** Vertex project selection uses explicit Google/Firebase project overrides, then the existing Firebase service account project, so working Firebase credentials do not require redundant project settings.
 
 
 ## Essential Commands

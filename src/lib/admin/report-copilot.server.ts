@@ -3,7 +3,7 @@
  * for a verdict on a disputed fact. Never writes Firestore — a human applies
  * any suggestion through the existing Apply & Resolve editor.
  */
-import { getAccessToken } from "../firebase/credentials.server";
+import { getAccessToken, getServiceAccount } from "../firebase/credentials.server";
 import { asJsonObject, isAbortError, responseSnippet } from "./http";
 import { compareSourceValues, type SourceValueRef } from "./source-compare";
 import {
@@ -164,8 +164,7 @@ const VERDICTS: CopilotVerdict[] = [
 ];
 
 function vertexUrl(): string {
-  const id = process.env["GOOGLE_CLOUD_PROJECT"]?.trim() || process.env["FIREBASE_PROJECT_ID"]?.trim();
-  if (!id) throw new Error("GOOGLE_CLOUD_PROJECT or FIREBASE_PROJECT_ID must be configured");
+  const id = process.env["GOOGLE_CLOUD_PROJECT"]?.trim() || process.env["FIREBASE_PROJECT_ID"]?.trim() || getServiceAccount().project_id;
   const loc = (process.env["VERTEX_LOCATION"] ?? "global").trim() || "global";
   return `https://aiplatform.googleapis.com/v1/projects/${id}/locations/${loc}/publishers/google/models/${MODEL_ID}:generateContent`;
 }
