@@ -9,7 +9,7 @@ vi.mock("@/lib/firebase/credentials.server", () => ({
 describe("copilot project configuration", () => {
   afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
   async function requestUrl() {
-    const request = vi.fn(async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ verdict: "unclear", confidence: "low", rationale: "Needs review", sources: [] }) }] } }] }), { status: 200 }));
+    const request = vi.fn(async (_url: string) => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ verdict: "unclear", confidence: "low", rationale: "Needs review", sources: [] }) }] } }] }), { status: 200 }));
     vi.stubGlobal("fetch", request);
     await reviewReportWithCopilot({ topic: "Test", claimStatement: "Test {n}", presentedNumber: 1, trueNumber: 2, unit: "", reason: "test", feedbackText: "" });
     return request.mock.calls[0]?.[0];
