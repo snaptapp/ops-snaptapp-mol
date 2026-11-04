@@ -125,6 +125,10 @@ export interface ModerationActInput {
     confidence: string;
     score: number;
     needsReview: boolean;
+    sources?: CopilotReview["sources"];
+    warnings?: string[];
+    rationale?: string;
+    origin?: string;
   };
 }
 
@@ -229,7 +233,7 @@ export function moderationButtons(
   return buttons;
 }
 
-async function loadPendingItem(reportId: string): Promise<ModerationQueueItem> {
+export async function loadPendingItem(reportId: string): Promise<ModerationQueueItem> {
   const report = await getReport(reportId);
   if (!report || report.status !== "pending_review") {
     throw new ModerationRequestError("Report not found or no longer pending.", 404);
@@ -335,7 +339,7 @@ function cleanUpdates(updates: ModerationFactUpdates | undefined): ModerationFac
 }
 
 /** Press one inbox button for a pending report. */
-export async function moderationAct(input: ModerationActInput): Promise<{ ok: true; reportId: string; action: ModerationAction }> {
+export async function moderationAct(input: ModerationActInput, actor: AdminUser = OPS_ACTOR): Promise<{ ok: true; reportId: string; action: ModerationAction }> {
   const reportId = input.reportId.trim();
   if (!reportId) throw new ModerationRequestError("reportId is required.", 400);
   if (!MODERATION_ACTIONS.includes(input.action)) {
@@ -355,7 +359,7 @@ export async function moderationAct(input: ModerationActInput): Promise<{ ok: tr
   const factUpdates = input.action === "edit_fact" ? cleanUpdates(input.factUpdates) : input.factUpdates;
 
   const copilot = input.copilot;
-  const audit = buildAuditEntry(OPS_ACTOR, {
+  const audit = buildAuditEntry(actor, {
     action: `report.${input.action}`,
     targetType: "report",
     targetId: reportId,
@@ -373,7 +377,7 @@ export async function moderationAct(input: ModerationActInput): Promise<{ ok: tr
     unit: item.report.unit,
     keepFactId: button.keepFactId,
     retireFactIds: button.retireFactIds,
-    admin: OPS_ACTOR,
+    admin: actor,
     audit,
     auditAfter: {
       action: input.action,
@@ -503,7 +507,7 @@ export function recommendModerationAction(
 }
 
 /** Run the existing report copilot and name the inbox button it supports. */
-export async function moderationCopilot(reportId: string): Promise<{
+export async function moderationCopilot(reportId: string, actor: AdminUser = OPS_ACTOR): Promise<{
   reportId: string;
   review: CopilotReview;
   buttons: ModerationButton[];
@@ -554,7 +558,7 @@ export async function moderationCopilot(reportId: string): Promise<{
     })),
   });
   const recommendation = recommendModerationAction(review, item.buttons);
-  await logAdminAction(OPS_ACTOR, {
+  await logAdminAction(actor, {
     action: "report.copilot_review",
     targetType: "report",
     targetId: id,

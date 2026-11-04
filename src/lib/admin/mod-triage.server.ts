@@ -1,6 +1,7 @@
 import { autoTriageDecision, AUTO_TRIAGE_BATCH_LIMIT } from "./mod-triage";
 import { moderationAct, moderationCopilot } from "./ops-moderation.server";
 import { listReports } from "./content.server";
+import type { AdminUser } from "../firebase/verify.server";
 
 export interface TriageRunItem {
   reportId: string;
@@ -21,19 +22,23 @@ export interface TriageRunResult {
   autoResolved: number;
   leftForAdmin: number;
   errors: number;
+  remaining: number;
   items: TriageRunItem[];
 }
 
 /** Review pending reports with the grounded copilot; auto-resolve only unambiguous ones. */
-export async function runModQueueTriage(opts: { dryRun: boolean; limit?: number }): Promise<TriageRunResult> {
+export async function runModQueueTriage(opts: { dryRun: boolean; limit?: number; actor?: AdminUser }): Promise<TriageRunResult> {
+  if (opts.limit !== undefined && (!Number.isInteger(opts.limit) || opts.limit < 1)) throw new Error("Invalid batch limit.");
   const limit = Math.min(opts.limit ?? AUTO_TRIAGE_BATCH_LIMIT, AUTO_TRIAGE_BATCH_LIMIT);
   const pending = (await listReports({ status: "pending_review", limit: 200 })).slice(0, limit);
   const items: TriageRunItem[] = [];
+  const deadline = Date.now() + 45_000;
 
   for (const report of pending) {
+    if (Date.now() >= deadline) break;
     const base = { reportId: report.id, topic: report.topic, claimStatement: report.claimStatement };
     try {
-      const { review, recommendation } = await moderationCopilot(report.id);
+      const { review, recommendation } = await moderationCopilot(report.id, opts.actor);
       const decision = autoTriageDecision(review, recommendation);
       const item: TriageRunItem = {
         ...base,
@@ -57,7 +62,7 @@ export async function runModQueueTriage(opts: { dryRun: boolean; limit?: number 
             score: review.policy.score,
             needsReview: review.policy.needsReview,
           },
-        });
+        }, opts.actor);
       }
       items.push(item);
     } catch (error) {
@@ -81,6 +86,7 @@ export async function runModQueueTriage(opts: { dryRun: boolean; limit?: number 
     autoResolved: items.filter((i) => i.outcome === "auto_resolved" || i.outcome === "would_resolve").length,
     leftForAdmin: items.filter((i) => i.outcome === "left_for_admin").length,
     errors: items.filter((i) => i.outcome === "error").length,
+    remaining: pending.length - items.length,
     items,
   };
 }
