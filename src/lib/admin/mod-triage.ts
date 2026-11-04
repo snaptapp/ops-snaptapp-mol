@@ -67,9 +67,13 @@ export function autoTriageDecision(
   if (review.sources.some((s) => s.conflicting || s.stance === "contradicts" || s.incomparable)) {
     return { auto: false, reason: "At least one source conflicts or cannot be compared." };
   }
-  const independent = new Set(review.sources.filter((s) => s.stance === "supports").map((s) => host(s.url)));
+  // Wikipedia is a lead, never evidence: its pages are excluded from support.
+  const supporting = review.sources.filter((s) => s.stance === "supports");
+  const independent = new Set(supporting.filter((s) => !isWikipediaUrl(s.url)).map((s) => host(s.url)));
   if (independent.size < AUTO_TRIAGE_MIN_SOURCES) {
-    return { auto: false, reason: `Only ${independent.size} independent supporting source(s); need ${AUTO_TRIAGE_MIN_SOURCES}.` };
+    const wikiExcluded = supporting.length > independent.size && supporting.some((s) => isWikipediaUrl(s.url));
+    const hint = wikiExcluded ? " Wikipedia cannot count as evidence; cite the primary source it points to." : "";
+    return { auto: false, reason: `Only ${independent.size} independent supporting source(s); need ${AUTO_TRIAGE_MIN_SOURCES}.${hint}` };
   }
   return { auto: true, reason: `${independent.size} independent sources agree with high confidence.` };
 }

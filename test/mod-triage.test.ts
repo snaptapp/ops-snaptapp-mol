@@ -38,9 +38,23 @@ describe("auto-triage decision gate", () => {
     const sources = [src("https://a.org/1"), src("https://en.m.wikipedia.org/wiki/X", "supports", true)];
     expect(autoTriageDecision(review({ sources }), rec()).auto).toBe(false);
   });
+  it("never counts Wikipedia as support toward the minimum", () => {
+    const sources = [src("https://en.wikipedia.org/wiki/X"), src("https://league.org/y")];
+    const decision = autoTriageDecision(review({ sources }), rec());
+    expect(decision.auto).toBe(false);
+    expect(decision.reason).toContain("Wikipedia cannot count as evidence");
+  });
+  it("does not let Wikipedia plus one primary source reach the minimum", () => {
+    const sources = [src("https://en.wikipedia.org/wiki/X"), src("https://en.m.wikipedia.org/wiki/Y"), src("https://league.org/y")];
+    expect(autoTriageDecision(review({ sources }), rec()).auto).toBe(false);
+  });
+  it("accepts two primary sources even when Wikipedia is also listed", () => {
+    const sources = [src("https://en.wikipedia.org/wiki/X"), src("https://league.org/y"), src("https://stats.com/z")];
+    expect(autoTriageDecision(review({ sources }), rec()).auto).toBe(true);
+  });
   it("does not trigger the Wikipedia rule without a contradiction", () => {
     const sources = [src("https://en.wikipedia.org/wiki/X"), src("https://league.org/y")];
-    expect(autoTriageDecision(review({ sources }), rec()).reason).not.toContain("Wikipedia");
+    expect(autoTriageDecision(review({ sources }), rec()).reason).not.toContain("replacement source");
   });
   it("does not trigger on a contradiction between non-Wikipedia sources", () => {
     const sources = [src("https://a.org/1"), src("https://b.org/2", "contradicts")];
