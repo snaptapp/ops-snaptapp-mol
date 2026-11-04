@@ -727,6 +727,38 @@ export const DERIVATION_TABLES = {
     "significant_figures_min": 1
   },
   "unit_bounds_overrides": {
+    "feet per second": {
+      "max_token": "983571056.431",
+      "min_token": "0"
+    },
+    "kilometers per hour": {
+      "max_token": "1079252848.8",
+      "min_token": "0"
+    },
+    "km/h": {
+      "max_token": "1079252848.8",
+      "min_token": "0"
+    },
+    "knots": {
+      "max_token": "582749918.359",
+      "min_token": "0"
+    },
+    "m/s": {
+      "max_token": "299792458",
+      "min_token": "0"
+    },
+    "meters per second": {
+      "max_token": "299792458",
+      "min_token": "0"
+    },
+    "miles per hour": {
+      "max_token": "670616629.385",
+      "min_token": "0"
+    },
+    "mph": {
+      "max_token": "670616629.385",
+      "min_token": "0"
+    },
     "passer rating": {
       "max_token": "158.3",
       "min_token": "0"

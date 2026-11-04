@@ -4,11 +4,11 @@
 //
 // Source of truth:
 //   agent-go/factlint_rules.go  (canonical lint rule registry)
-//   rules_revision b720efc31914df7afaa9c4ccaf2019fb191eab7cbd8ac93d2afa07ae21a542c8
+//   rules_revision 93973c5e32b878115221bc051250baa55301043a39c58a8b7c6600d6d5e99196
 //   emitted from: agent-go via `agent-go lint-catalog`
 
 export const LINT_CATALOG_SCHEMA_VERSION = 1;
-export const LINT_RULES_REVISION = "b720efc31914df7afaa9c4ccaf2019fb191eab7cbd8ac93d2afa07ae21a542c8";
+export const LINT_RULES_REVISION = "93973c5e32b878115221bc051250baa55301043a39c58a8b7c6600d6d5e99196";
 
 export const LINT_SEVERITIES = ["severe", "review", "warn"] as const;
 export type LintSeverity = (typeof LINT_SEVERITIES)[number];
@@ -75,6 +75,16 @@ export const LINT_RULES: readonly LintRuleDefinition[] = [
     fields: ["question", "claim_template", "true_number"],
     check: "Two facts with the same or near-identical normalized question in a shared scope carry different true numbers.",
     remediation: "Compare the paired facts, their units, periods, and sources. Correct the wrong value, distinguish the questions, or retire the duplicate.",
+    overridable: true,
+  },
+  {
+    id: "duplicate_claim",
+    title: "Claim may repeat another fact",
+    severity: "review",
+    enforcement: "review_required",
+    fields: ["subject", "question", "claim_template", "quantity_spec"],
+    check: "Answer-independent claim-review-v1 compares typed quantity identity or conservative entity/measure wording with explicit scope and identifier guards. A match requires paired review, not automatic deduplication.",
+    remediation: "Compare both claims, values, units, periods and evidence. Preserve distinct quantities; retire a duplicate only through an explicitly approved lifecycle transition. No winner is selected automatically.",
     overridable: true,
   },
   {

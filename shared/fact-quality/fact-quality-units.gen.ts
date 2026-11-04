@@ -180,7 +180,8 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "total",
         "single_event",
-        "maximum"
+        "maximum",
+        "minimum"
       ],
       "bases": [
         "capacity",
@@ -190,7 +191,10 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
     "credited_statistic": {
       "aggregations": [
         "credited_statistic",
-        "total"
+        "total",
+        "single_event",
+        "maximum",
+        "minimum"
       ],
       "bases": [
         "count"
@@ -201,6 +205,7 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
         "single_event",
         "total",
         "maximum",
+        "minimum",
         "mean"
       ],
       "bases": [
@@ -212,7 +217,9 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
         "total",
         "single_event",
         "mean",
-        "rate"
+        "rate",
+        "maximum",
+        "minimum"
       ],
       "bases": [
         "duration"
@@ -254,7 +261,9 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
         "rate",
         "single_event",
         "mean",
-        "ratio"
+        "ratio",
+        "maximum",
+        "minimum"
       ],
       "bases": [
         "percent_delta"
@@ -264,7 +273,10 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "total",
         "unique_count",
-        "single_event"
+        "single_event",
+        "maximum",
+        "minimum",
+        "mean"
       ],
       "bases": [
         "count"
@@ -274,6 +286,7 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "single_event",
         "maximum",
+        "minimum",
         "mean"
       ],
       "bases": [
@@ -290,10 +303,24 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
         "rank"
       ]
     },
+    "mass": {
+      "aggregations": [
+        "single_event",
+        "total",
+        "maximum",
+        "minimum",
+        "mean"
+      ],
+      "bases": [
+        "mass"
+      ]
+    },
     "net_worth": {
       "aggregations": [
         "single_event",
-        "maximum"
+        "maximum",
+        "minimum",
+        "total"
       ],
       "bases": [
         "money"
@@ -303,7 +330,9 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "total",
         "unique_count",
-        "single_event"
+        "single_event",
+        "maximum",
+        "minimum"
       ],
       "bases": [
         "count"
@@ -313,7 +342,10 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "single_event",
         "mean",
-        "ratio"
+        "ratio",
+        "maximum",
+        "minimum",
+        "total"
       ],
       "bases": [
         "percent_proportion"
@@ -323,7 +355,9 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "single_event",
         "mean",
-        "maximum"
+        "maximum",
+        "minimum",
+        "total"
       ],
       "bases": [
         "rating"
@@ -333,6 +367,7 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "aggregations": [
         "single_event",
         "maximum",
+        "minimum",
         "mean",
         "rate"
       ],
@@ -370,6 +405,16 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
     "current_snapshot"
   ],
   "units": {
+    "billion_count": {
+      "aliases": [
+        "billion",
+        "billions"
+      ],
+      "base": "count",
+      "factor_den": "1",
+      "factor_num": "1000000000",
+      "integral_base": true
+    },
     "calendar_year": {
       "aliases": [
         "year",
@@ -383,6 +428,15 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_den": "1",
       "factor_num": "1"
     },
+    "cent": {
+      "aliases": [
+        "cent",
+        "cents"
+      ],
+      "base": "money",
+      "factor_den": "1",
+      "factor_num": "0.01"
+    },
     "centimeter": {
       "aliases": [
         "centimeters",
@@ -395,6 +449,28 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_den": "1",
       "factor_num": "0.01"
     },
+    "century": {
+      "aliases": [
+        "century",
+        "centuries"
+      ],
+      "base": "duration",
+      "factor_den": "1",
+      "factor_num": "3155760000"
+    },
+    "count": {
+      "aliases": [
+        "count",
+        "counts",
+        "item",
+        "items",
+        "unit",
+        "units"
+      ],
+      "base": "count",
+      "factor_den": "1",
+      "factor_num": "1"
+    },
     "day": {
       "aliases": [
         "days",
@@ -403,6 +479,15 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "base": "duration",
       "factor_den": "1",
       "factor_num": "86400"
+    },
+    "decade": {
+      "aliases": [
+        "decade",
+        "decades"
+      ],
+      "base": "duration",
+      "factor_den": "1",
+      "factor_num": "315576000"
     },
     "degree_celsius": {
       "aliases": [
@@ -525,6 +610,17 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_den": "1",
       "factor_num": "1"
     },
+    "metric_ton": {
+      "aliases": [
+        "metric ton",
+        "metric tons",
+        "tonne",
+        "tonnes"
+      ],
+      "base": "mass",
+      "factor_den": "1",
+      "factor_num": "1000000"
+    },
     "mile": {
       "aliases": [
         "miles",
@@ -544,6 +640,27 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_den": "3600",
       "factor_num": "1609.344"
     },
+    "millimeter": {
+      "aliases": [
+        "millimeter",
+        "millimeters",
+        "millimetre",
+        "millimetres",
+        "mm"
+      ],
+      "base": "length",
+      "factor_den": "1",
+      "factor_num": "0.001"
+    },
+    "million_count": {
+      "aliases": [
+        "million_count"
+      ],
+      "base": "count",
+      "factor_den": "1",
+      "factor_num": "1000000",
+      "integral_base": true
+    },
     "million_persons": {
       "aliases": [
         "million people",
@@ -556,6 +673,16 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_num": "1000000",
       "integral_base": true
     },
+    "millisecond": {
+      "aliases": [
+        "millisecond",
+        "milliseconds",
+        "ms"
+      ],
+      "base": "duration",
+      "factor_den": "1",
+      "factor_num": "0.001"
+    },
     "minute": {
       "aliases": [
         "minutes",
@@ -565,6 +692,35 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "base": "duration",
       "factor_den": "1",
       "factor_num": "60"
+    },
+    "month": {
+      "aliases": [
+        "month",
+        "months"
+      ],
+      "base": "duration",
+      "factor_den": "1",
+      "factor_num": "2629800"
+    },
+    "nautical_mile": {
+      "aliases": [
+        "nautical mile",
+        "nautical miles",
+        "nmi"
+      ],
+      "base": "length",
+      "factor_den": "1",
+      "factor_num": "1852"
+    },
+    "ounce": {
+      "aliases": [
+        "ounce",
+        "ounces",
+        "oz"
+      ],
+      "base": "mass",
+      "factor_den": "1",
+      "factor_num": "28.349523125"
     },
     "percent": {
       "aliases": [
@@ -618,6 +774,17 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "base": "count",
       "factor_den": "1",
       "factor_num": "1"
+    },
+    "pound": {
+      "aliases": [
+        "pound",
+        "pounds",
+        "lb",
+        "lbs"
+      ],
+      "base": "mass",
+      "factor_den": "1",
+      "factor_num": "453.59237"
     },
     "rank": {
       "aliases": [
@@ -686,6 +853,27 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_den": "1",
       "factor_num": "1"
     },
+    "thousand_count": {
+      "aliases": [
+        "thousand",
+        "thousands"
+      ],
+      "base": "count",
+      "factor_den": "1",
+      "factor_num": "1000",
+      "integral_base": true
+    },
+    "ton_short": {
+      "aliases": [
+        "ton",
+        "tons",
+        "short ton",
+        "short tons"
+      ],
+      "base": "mass",
+      "factor_den": "1",
+      "factor_num": "907184.74"
+    },
     "us_dollar": {
       "aliases": [
         "dollars",
@@ -730,6 +918,17 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "factor_den": "1",
       "factor_num": "1000"
     },
+    "us_dollar_trillion": {
+      "aliases": [
+        "trillion dollars",
+        "trillions of dollars",
+        "usd trillion",
+        "$t"
+      ],
+      "base": "money",
+      "factor_den": "1",
+      "factor_num": "1000000000000"
+    },
     "week": {
       "aliases": [
         "weeks",
@@ -738,6 +937,17 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
       "base": "duration",
       "factor_den": "1",
       "factor_num": "604800"
+    },
+    "yard": {
+      "aliases": [
+        "yard",
+        "yards",
+        "yd",
+        "yds"
+      ],
+      "base": "length",
+      "factor_den": "1",
+      "factor_num": "0.9144"
     },
     "year_duration": {
       "aliases": [

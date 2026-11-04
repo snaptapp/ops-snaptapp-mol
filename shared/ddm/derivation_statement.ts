@@ -4,7 +4,7 @@
 //   scripts/ddm-port-source/derivation_statement.ts
 //   agent-go/derivation*.go  (Go reference mirrored line-for-line)
 //
-// The Worker and Functions runtime copies are byte-identical twins
+// The Worker runtime modules are generated
 // emitted from the port source; edit the port source, never this file.
 
 // Distractor Derivation Model (DDM) — shared TypeScript port source (task 9.5 slice).

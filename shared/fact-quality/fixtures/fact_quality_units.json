@@ -108,6 +108,33 @@
     }
   },
   "units": {
+    "count": {
+      "base": "count",
+      "factor_num": "1",
+      "factor_den": "1",
+      "aliases": ["count", "counts", "item", "items", "unit", "units"]
+    },
+    "thousand_count": {
+      "base": "count",
+      "factor_num": "1000",
+      "factor_den": "1",
+      "integral_base": true,
+      "aliases": ["thousand", "thousands"]
+    },
+    "million_count": {
+      "base": "count",
+      "factor_num": "1000000",
+      "factor_den": "1",
+      "integral_base": true,
+      "aliases": ["million_count"]
+    },
+    "billion_count": {
+      "base": "count",
+      "factor_num": "1000000000",
+      "factor_den": "1",
+      "integral_base": true,
+      "aliases": ["billion", "billions"]
+    },
     "person": {
       "base": "count",
       "factor_num": "1",
@@ -135,6 +162,12 @@
       "factor_den": "1",
       "aliases": ["seats", "capacity", "seats of capacity"]
     },
+    "cent": {
+      "base": "money",
+      "factor_num": "0.01",
+      "factor_den": "1",
+      "aliases": ["cent", "cents"]
+    },
     "us_dollar": {
       "base": "money",
       "factor_num": "1",
@@ -159,6 +192,12 @@
       "factor_den": "1",
       "aliases": ["billion dollars", "billions of dollars", "usd billion", "$b"]
     },
+    "us_dollar_trillion": {
+      "base": "money",
+      "factor_num": "1000000000000",
+      "factor_den": "1",
+      "aliases": ["trillion dollars", "trillions of dollars", "usd trillion", "$t"]
+    },
     "gram": {
       "base": "mass",
       "factor_num": "1",
@@ -170,6 +209,36 @@
       "factor_num": "1000",
       "factor_den": "1",
       "aliases": ["kilogram", "kilograms", "kg"]
+    },
+    "ounce": {
+      "base": "mass",
+      "factor_num": "28.349523125",
+      "factor_den": "1",
+      "aliases": ["ounce", "ounces", "oz"]
+    },
+    "pound": {
+      "base": "mass",
+      "factor_num": "453.59237",
+      "factor_den": "1",
+      "aliases": ["pound", "pounds", "lb", "lbs"]
+    },
+    "ton_short": {
+      "base": "mass",
+      "factor_num": "907184.74",
+      "factor_den": "1",
+      "aliases": ["ton", "tons", "short ton", "short tons"]
+    },
+    "metric_ton": {
+      "base": "mass",
+      "factor_num": "1000000",
+      "factor_den": "1",
+      "aliases": ["metric ton", "metric tons", "tonne", "tonnes"]
+    },
+    "millimeter": {
+      "base": "length",
+      "factor_num": "0.001",
+      "factor_den": "1",
+      "aliases": ["millimeter", "millimeters", "millimetre", "millimetres", "mm"]
     },
     "meter": {
       "base": "length",
@@ -189,6 +258,12 @@
       "factor_den": "1",
       "aliases": ["centimeters", "centimetres", "centimeter", "centimetre", "cm"]
     },
+    "yard": {
+      "base": "length",
+      "factor_num": "0.9144",
+      "factor_den": "1",
+      "aliases": ["yard", "yards", "yd", "yds"]
+    },
     "foot": {
       "base": "length",
       "factor_num": "0.3048",
@@ -206,6 +281,12 @@
       "factor_num": "1609.344",
       "factor_den": "1",
       "aliases": ["miles", "mile", "mi"]
+    },
+    "nautical_mile": {
+      "base": "length",
+      "factor_num": "1852",
+      "factor_den": "1",
+      "aliases": ["nautical mile", "nautical miles", "nmi"]
     },
     "degree_celsius": {
       "base": "temperature",
@@ -269,6 +350,12 @@
       "factor_den": "3600",
       "aliases": ["miles per hour", "mph"]
     },
+    "millisecond": {
+      "base": "duration",
+      "factor_num": "0.001",
+      "factor_den": "1",
+      "aliases": ["millisecond", "milliseconds", "ms"]
+    },
     "second": {
       "base": "duration",
       "factor_num": "1",
@@ -299,11 +386,29 @@
       "factor_den": "1",
       "aliases": ["weeks", "week"]
     },
+    "month": {
+      "base": "duration",
+      "factor_num": "2629800",
+      "factor_den": "1",
+      "aliases": ["month", "months"]
+    },
     "year_duration": {
       "base": "duration",
       "factor_num": "31557600",
       "factor_den": "1",
       "aliases": ["years elapsed", "years of", "years long", "elapsed years"]
+    },
+    "decade": {
+      "base": "duration",
+      "factor_num": "315576000",
+      "factor_den": "1",
+      "aliases": ["decade", "decades"]
+    },
+    "century": {
+      "base": "duration",
+      "factor_num": "3155760000",
+      "factor_den": "1",
+      "aliases": ["century", "centuries"]
     },
     "ratio": {
       "base": "ratio",
@@ -319,21 +424,22 @@
     }
   },
   "measures": {
-    "net_worth": { "bases": ["money"], "aggregations": ["single_event", "maximum"] },
-    "population": { "bases": ["count"], "aggregations": ["total", "unique_count", "single_event"] },
-    "headcount": { "bases": ["count"], "aggregations": ["total", "unique_count", "single_event"] },
-    "credited_statistic": { "bases": ["count"], "aggregations": ["credited_statistic", "total"] },
+    "net_worth": { "bases": ["money"], "aggregations": ["single_event", "maximum", "minimum", "total"] },
+    "population": { "bases": ["count"], "aggregations": ["total", "unique_count", "single_event", "maximum", "minimum"] },
+    "headcount": { "bases": ["count"], "aggregations": ["total", "unique_count", "single_event", "maximum", "minimum", "mean"] },
+    "credited_statistic": { "bases": ["count"], "aggregations": ["credited_statistic", "total", "single_event", "maximum", "minimum"] },
     "list_rank": { "bases": ["rank"], "aggregations": ["single_event", "maximum", "minimum"] },
     "calendar_year_of_event": { "bases": ["calendar_year"], "aggregations": ["single_event"] },
     "temperature": { "bases": ["temperature"], "aggregations": ["single_event", "maximum", "minimum", "mean"] },
-    "speed": { "bases": ["rate"], "aggregations": ["single_event", "maximum", "mean", "rate"] },
-    "distance": { "bases": ["length"], "aggregations": ["single_event", "total", "maximum", "mean"] },
-    "height": { "bases": ["length"], "aggregations": ["single_event", "maximum", "mean"] },
-    "proportion": { "bases": ["percent_proportion"], "aggregations": ["single_event", "mean", "ratio"] },
-    "growth": { "bases": ["percent_delta"], "aggregations": ["rate", "single_event", "mean", "ratio"] },
-    "elapsed_time": { "bases": ["duration"], "aggregations": ["total", "single_event", "mean", "rate"] },
-    "score": { "bases": ["rating"], "aggregations": ["single_event", "mean", "maximum"] },
-    "capacity": { "bases": ["capacity", "count"], "aggregations": ["total", "single_event", "maximum"] },
+    "speed": { "bases": ["rate"], "aggregations": ["single_event", "maximum", "minimum", "mean", "rate"] },
+    "distance": { "bases": ["length"], "aggregations": ["single_event", "total", "maximum", "minimum", "mean"] },
+    "height": { "bases": ["length"], "aggregations": ["single_event", "maximum", "minimum", "mean"] },
+    "mass": { "bases": ["mass"], "aggregations": ["single_event", "total", "maximum", "minimum", "mean"] },
+    "proportion": { "bases": ["percent_proportion"], "aggregations": ["single_event", "mean", "ratio", "maximum", "minimum", "total"] },
+    "growth": { "bases": ["percent_delta"], "aggregations": ["rate", "single_event", "mean", "ratio", "maximum", "minimum"] },
+    "elapsed_time": { "bases": ["duration"], "aggregations": ["total", "single_event", "mean", "rate", "maximum", "minimum"] },
+    "score": { "bases": ["rating"], "aggregations": ["single_event", "mean", "maximum", "minimum", "total"] },
+    "capacity": { "bases": ["capacity", "count"], "aggregations": ["total", "single_event", "maximum", "minimum"] },
     "generic": { "bases": ["count", "capacity", "money", "length", "mass", "temperature", "percent_proportion", "percent_delta", "percent_point", "rank", "calendar_year", "rate", "duration", "ratio", "rating"], "aggregations": ["single_event", "total", "unique_count", "maximum", "minimum", "mean", "median", "rate", "credited_statistic", "ratio"] }
   }
 }

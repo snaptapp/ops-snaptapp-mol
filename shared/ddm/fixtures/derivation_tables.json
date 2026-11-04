@@ -141,7 +141,15 @@
   },
 
   "unit_bounds_overrides": {
-    "$comment": "Hard domain ceilings/floors keyed by NORMALIZED unit (post-normalization spelling: lowercase, single spaces). After bounds resolve (Fact-Bank hint, model hint, or kind default), the resolved pair is intersected with the unit's override pair and re-checked for coherence: a physical/rule ceiling constrains even hint-provided bounds, and a true_number outside the override yields BOUNDS_INCOHERENT. Seed ONLY mathematically or rule-true limits (e.g. the NFL passer-rating formula caps at 158.3); soft priors belong in per-fact plausible_min/plausible_max hints, never here. Bound tokens are canonical numeric strings ingested by exact Numeric_Ingest, never floats.",
+    "$comment": "Hard domain ceilings/floors keyed by NORMALIZED unit (post-normalization spelling: lowercase, single spaces). After bounds resolve (Fact-Bank hint, model hint, or kind default), the resolved pair is intersected with the unit's override pair and re-checked for coherence: a physical/rule ceiling constrains even hint-provided bounds, and a true_number outside the override yields BOUNDS_INCOHERENT. Seed ONLY mathematically or rule-true limits (e.g. the NFL passer-rating formula caps at 158.3); soft priors belong in per-fact plausible_min/plausible_max hints, never here. Bound tokens are canonical numeric strings ingested by exact Numeric_Ingest, never floats. A physical ceiling is stated in the unit's own terms and rounded UP at 3 decimals (the ingest scale) so no physically-true value is ever excluded; the constants and sources behind each entry are listed in docs/FACT_BANK.md, and tests/node/served-bank-domains.test.mjs recomputes them. Spelling variants carry the same ceiling because the key is the normalized unit, not a canonical unit: a fact whose unit reads 'miles per hour' never matches 'mph'.",
+    "feet per second": { "min_token": "0", "max_token": "983571056.431" },
+    "km/h": { "min_token": "0", "max_token": "1079252848.8" },
+    "kilometers per hour": { "min_token": "0", "max_token": "1079252848.8" },
+    "knots": { "min_token": "0", "max_token": "582749918.359" },
+    "m/s": { "min_token": "0", "max_token": "299792458" },
+    "meters per second": { "min_token": "0", "max_token": "299792458" },
+    "miles per hour": { "min_token": "0", "max_token": "670616629.385" },
+    "mph": { "min_token": "0", "max_token": "670616629.385" },
     "passer rating": { "min_token": "0", "max_token": "158.3" }
   },
 
