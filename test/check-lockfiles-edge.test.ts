@@ -41,9 +41,9 @@ interface LockfileCheckOutcome {
 }
 
 interface LockfileCheckModule {
-  runLockfileCheck(cwd: string): LockfileCheckOutcome;
+  runLockfileCheck(cwd: string, options?: { spawn: typeof spawnSync }): LockfileCheckOutcome;
   resolveRepositoryRoot(cwd: string): string;
-  listTrackedPaths(root: string): string[];
+  listTrackedPaths(root: string, spawn?: typeof spawnSync): string[];
   GitTrackingUnavailableError: new (message: string) => Error;
   EXIT_GIT_UNAVAILABLE: number;
   EXIT_CLASSIFICATION_FAILURE: number;
@@ -107,46 +107,38 @@ function withGitCeiling<T>(fn: () => T): T {
   }
 }
 
-function runGit(args: string[], cwd: string): void {
-  const result = spawnSync("git", args, {
-    cwd,
-    encoding: "utf8",
-    env: gitScopedEnv(),
-    windowsHide: true,
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`git ${args.join(" ")} failed in ${cwd}: ${result.stderr ?? ""}`);
-  }
-}
-
 /**
- * A minimal passing checkout: a git working tree whose index tracks
- * `package-lock.json` and which has no `node_modules` directory. Staging the
- * lockfile is enough — `git ls-files` reads the index, so no commit (and no git
- * identity configuration) is required.
+ * A minimal disk fixture with no installed dependencies. Tracking query
+ * responses are supplied separately, without creating or mutating Git metadata.
  */
-function makeGitRepoWithLockfile(prefix: string): string {
+function makeLockfileFixture(prefix: string): string {
   const dir = makeTempDir(prefix);
-  runGit(["init", "-q"], dir);
   fs.writeFileSync(
     path.join(dir, "package-lock.json"),
     '{\n  "name": "temp-fixture",\n  "lockfileVersion": 3,\n  "packages": {}\n}\n',
     "utf8",
   );
-  runGit(["add", "package-lock.json"], dir);
   return dir;
 }
 
 /** Runs the check as a child process, returning the outcome and wall-clock cost. */
-function runCheckAsChildProcess(cwd: string): {
+function runCheckAsChildProcess(cwd: string, trackedFixture = false): {
   status: number | null;
   stdout: string;
   stderr: string;
   elapsedMs: number;
 } {
   const startedAt = performance.now();
-  const result = spawnSync(process.execPath, [scriptPath], {
+  const args = trackedFixture ? ["--input-type=module", "-e", `
+    import { runLockfileCheck } from ${JSON.stringify(new URL("../scripts/check-lockfiles.mjs", import.meta.url).href)};
+    const outcome = runLockfileCheck(process.cwd(), { spawn: (_command, args) => ({
+      status: 0, stdout: args[0] === 'rev-parse' ? process.cwd() + '\\n' : 'package-lock.json\\0', stderr: ''
+    }) });
+    for (const line of outcome.stdout) console.log(line);
+    for (const line of outcome.stderr) console.error(line);
+    process.exit(outcome.exitCode);
+  `] : [scriptPath];
+  const result = spawnSync(process.execPath, args, {
     cwd,
     encoding: "utf8",
     env: gitScopedEnv(),
@@ -200,17 +192,19 @@ describe("Lockfile_Check fails closed when git tracking information is unavailab
   });
 
   it("reports the cause and exits non-zero when the tracking query exits non-zero", () => {
-    const dir = makeGitRepoWithLockfile("lockfile-check-corrupt-index-");
-    // A corrupt index leaves the working tree resolvable but makes the tracking
-    // query itself exit non-zero — the second cause named by Requirement 2.5.
-    fs.writeFileSync(path.join(dir, ".git", "index"), "not a git index\n", "utf8");
+    const dir = makeLockfileFixture("lockfile-check-query-failure-");
+    const trackingFailure = ((_command: string, args: string[]) => ({
+      status: args[0] === "rev-parse" ? 0 : 128,
+      stdout: args[0] === "rev-parse" ? `${dir}\n` : "",
+      stderr: args[0] === "rev-parse" ? "" : "fatal: index file corrupt",
+    })) as typeof spawnSync;
 
     withGitCeiling(() => {
-      expect(() => lockfileCheck.listTrackedPaths(dir)).toThrow(
+      expect(() => lockfileCheck.listTrackedPaths(dir, trackingFailure)).toThrow(
         lockfileCheck.GitTrackingUnavailableError,
       );
 
-      const outcome = lockfileCheck.runLockfileCheck(dir);
+      const outcome = lockfileCheck.runLockfileCheck(dir, { spawn: trackingFailure });
 
       expect(outcome.ok).toBe(false);
       expect(outcome.exitCode).not.toBe(0);
@@ -243,12 +237,12 @@ describe("Lockfile_Check fails closed when git tracking information is unavailab
 
 describe("Lockfile_Check timing", () => {
   it("completes within 5 seconds on a checkout with no installed node_modules", () => {
-    const dir = makeGitRepoWithLockfile("lockfile-check-timing-");
+    const dir = makeLockfileFixture("lockfile-check-timing-");
 
     // The precondition the requirement names: nothing is installed.
     expect(fs.existsSync(path.join(dir, "node_modules"))).toBe(false);
 
-    const result = runCheckAsChildProcess(dir);
+    const result = runCheckAsChildProcess(dir, true);
 
     expect(result.status).toBe(0);
     expect(result.stderr).toBe("");

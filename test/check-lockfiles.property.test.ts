@@ -11,12 +11,12 @@
  *
  * The biconditional is driven over the pure classifier `classifyLockfiles`, which
  * takes the tracked-path set as data — 300 fast-check iterations, no I/O. Three
- * temporary git repositories (created once each, not per iteration, to stay inside
+ * temporary disk fixtures with injected read-only tracking responses (once each, not per iteration, to stay inside
  * the 10 s per-test and 120 s whole-suite budgets) give filesystem-level confidence
- * that the real `git ls-files`-backed runner agrees with the classifier and that it
+ * that the runner agrees with the classifier and that it
  * leaves the working tree byte-identical.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import fc from "fast-check";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -50,7 +50,7 @@ interface LockfileCheckModule {
     trackedPaths: Iterable<string>;
     onDiskPaths?: Iterable<string>;
   }): LockfileOutcome;
-  runLockfileCheck(cwd?: string): LockfileOutcome;
+  runLockfileCheck(cwd?: string, options?: { spawn: typeof spawnSync }): LockfileOutcome;
 }
 
 // `scripts/check-lockfiles.mjs` is a plain Node ESM script with no type
@@ -254,32 +254,15 @@ describe("Property 1: Lockfile classification", () => {
 // Filesystem-level confirmation: a small number of real git working trees.
 // ---------------------------------------------------------------------------
 
-function git(args: readonly string[], cwd: string): void {
-  const result = spawnSync("git", [...args], { cwd, encoding: "utf8", windowsHide: true });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error(`git ${args.join(" ")} failed in ${cwd}: ${result.stderr ?? ""}`);
-  }
-}
-
-const gitAvailable = (() => {
-  const probe = spawnSync("git", ["--version"], { encoding: "utf8", windowsHide: true });
-  return !probe.error && probe.status === 0;
-})();
-
 /**
- * Creates a temporary git working tree whose index tracks exactly `trackedPaths`.
- * Staging is enough: `git ls-files` reports the index, so no commit (and therefore
- * no `user.email` configuration) is needed.
+ * Creates real files without changing any Git repository metadata.
  */
 function createTempRepo(trackedPaths: readonly string[]): string {
   const root = mkdtempSync(path.join(os.tmpdir(), "lockfile-check-"));
-  git(["init", "--quiet"], root);
   for (const relativePath of trackedPaths) {
     const absolute = path.join(root, relativePath);
     mkdirSync(path.dirname(absolute), { recursive: true });
     writeFileSync(absolute, `// ${relativePath}\n`, "utf8");
-    git(["add", "--", relativePath], root);
   }
   return root;
 }
@@ -337,15 +320,24 @@ const repoCases: RepoCase[] = [
   },
 ];
 
-describe.skipIf(!gitAvailable)(
-  "Property 1 over real git working trees (Requirements 2.1, 2.2, 2.3)",
+describe(
+  "Property 1 over disk fixtures and tracking queries (Requirements 2.1, 2.2, 2.3)",
   () => {
     for (const repoCase of repoCases) {
       it(`classifies ${repoCase.name} and modifies no file`, () => {
         const root = createTempRepo(repoCase.trackedPaths);
         try {
           const before = snapshotWorkingTree(root);
-          const outcome = runLockfileCheck(root);
+          const tracking = vi.fn((_command: string, args: string[]) => ({
+            status: 0,
+            stdout: args[0] === "rev-parse" ? `${root}\n` : `${repoCase.trackedPaths.join("\0")}\0`,
+            stderr: "",
+          }));
+          const outcome = runLockfileCheck(root, { spawn: tracking as typeof spawnSync });
+          expect(tracking.mock.calls.map(([command, args]) => [command, args])).toEqual([
+            ["git", ["rev-parse", "--show-toplevel"]],
+            ["git", ["ls-files", "-z", "--full-name"]],
+          ]);
           const after = snapshotWorkingTree(root);
 
           expect(outcome.ok).toBe(repoCase.expectedPass);
