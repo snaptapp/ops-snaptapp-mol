@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [ ] Expand authenticated MCP report review and guarded external triage tools; raise triage batches beyond 10 and verify safety tests and manifest.
 - [x] Fix lockfile tests without Git mutations and valid randomized audit inputs; all nine quality-gate checks and 708 tests passed, automatic preview build reports OK, signed-in browser entry verified.
 - [ ] Verify moderation dry-run project fallback in the live preview — fallback implemented and 21 targeted tests passed; build blocker removed, real grounded dry-run verification still pending.
 - [x] Correct Lovable connection detection and prevent Google Connect from replacing the current account — five tests passed; signed-in browser check verified with refreshed modules. Google linking remains blocked by disabled manual linking and missing managed linking support.
