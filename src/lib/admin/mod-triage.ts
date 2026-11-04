@@ -15,7 +15,7 @@ export const AUTO_TRIAGE_ACTIONS: readonly ModerationAction[] = ["reject", "reso
 export const AUTO_TRIAGE_MIN_SOURCES = 2;
 
 /** Maximum reports reviewed per run, so one run fits a single request. */
-export const AUTO_TRIAGE_BATCH_LIMIT = 10;
+export const AUTO_TRIAGE_BATCH_LIMIT = 50;
 
 export interface AutoTriageDecision {
   auto: boolean;

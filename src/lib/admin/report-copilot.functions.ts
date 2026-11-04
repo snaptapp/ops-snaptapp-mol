@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "./middleware";
+import { AUTO_TRIAGE_BATCH_LIMIT } from "./mod-triage";
 
 /** Read-only copilot review of a pending report. Never writes Firestore. */
 export const runReportCopilot = createServerFn({ method: "POST" })
@@ -112,8 +113,8 @@ export const fetchReportAudit = createServerFn({ method: "POST" })
 /** Batch auto-triage of the pending queue. Dry run never writes. */
 export const runModQueueAutoTriage = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator((data: unknown) => z.object({ dryRun: z.boolean() }).parse(data))
-  .handler(async ({ data }) => {
+  .inputValidator((data: unknown) => z.object({ dryRun: z.boolean(), limit: z.number().int().min(1).max(AUTO_TRIAGE_BATCH_LIMIT).default(AUTO_TRIAGE_BATCH_LIMIT) }).parse(data))
+  .handler(async ({ data, context }) => {
     const { runModQueueTriage } = await import("./mod-triage.server");
-    return runModQueueTriage({ dryRun: data.dryRun });
+    return runModQueueTriage({ ...data, actor: context.user });
   });

@@ -10,6 +10,7 @@ import { fetchReportAudit, runModQueueAutoTriage, runReportCopilot } from "@/lib
 import { isDuplicateFlag, isNonDuplicateFlag } from "@/lib/admin/quality-flags";
 import { isDuplicateDecisionSafe, type DuplicateFactCandidate } from "@/lib/admin/duplicate-resolution";
 import { QUANTITY_KINDS } from "../../../shared/fact-lifecycle-contract.gen";
+import { AUTO_TRIAGE_BATCH_LIMIT } from "@/lib/admin/mod-triage";
 
 const QUANTITY_KIND_OPTIONS = ["", ...QUANTITY_KINDS] as const;
 
@@ -2075,7 +2076,7 @@ function AutoTriagePanel() {
       <CardLabel>AI AUTO-TRIAGE</CardLabel>
       <CardTitle>Clear the easy reports</CardTitle>
       <p className="admin-muted">
-        Checks up to 10 pending reports against live web search. Only reports with 2+ independent agreeing sources,
+        Checks up to {AUTO_TRIAGE_BATCH_LIMIT} pending reports against live web search. Only reports with 2+ independent agreeing sources,
         no conflicts and high confidence are resolved. Everything else stays here for you.
       </p>
       <div className="admin-toolbar">
@@ -2098,6 +2099,7 @@ function AutoTriagePanel() {
             <strong>{result.dryRun ? "Dry run" : "Run complete"}:</strong> checked {result.checked},{" "}
             {result.dryRun ? "would resolve" : "resolved"} {result.autoResolved}, left for you {result.leftForAdmin}
             {result.errors ? `, failed ${result.errors}` : ""}.
+            {result.remaining ? ` ${result.remaining} not checked within this request; run again to continue.` : ""}
           </p>
           <ul className="admin-list">
             {result.items.map((item) => (
