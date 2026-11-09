@@ -191,8 +191,19 @@ worker.tool("moderation_act", {
       })
       .nullable()
       .describe("Required for edit_fact. Only fields to change."),
+    expected_facts: j
+      .array(
+        j.object({
+          id: j.string().describe("Fact id from moderation_copilot's expectedFacts."),
+          update_time: j.string().describe("That fact's updateTime from moderation_copilot's expectedFacts."),
+        }),
+      )
+      .nullable()
+      .describe(
+        "Pass moderation_copilot's expectedFacts so the press aborts if a fact changed after review. Required (every keep and retire id) for resolve_duplicate; null for other actions.",
+      ),
   }),
-  execute: async ({ report_id, action, corrected_number, keep_fact_id, note, fact_updates }) => {
+  execute: async ({ report_id, action, corrected_number, keep_fact_id, note, fact_updates, expected_facts }) => {
     const updates =
       fact_updates === null
         ? undefined
@@ -213,6 +224,7 @@ worker.tool("moderation_act", {
         keepFactId: keep_fact_id ?? undefined,
         note: note ?? undefined,
         factUpdates: updates,
+        expectedFacts: expected_facts?.map((f) => ({ id: f.id, updateTime: f.update_time })) ?? undefined,
       },
     });
   },

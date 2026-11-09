@@ -367,6 +367,22 @@ function cleanUpdates(updates: ModerationFactUpdates | undefined): ModerationFac
   return next;
 }
 
+/**
+ * Keep and retire IDs of a duplicate resolution that the caller did not bind to
+ * a reviewed revision. Only supplied revisions count: facts read fresh at action
+ * time would let an omitted ID skip the copilot-time check.
+ */
+export function unboundDuplicateResolutionIds(
+  button: { keepFactId?: string | null; retireFactIds?: readonly string[] | null },
+  expectedFacts: ReadonlyArray<{ id: string }> = [],
+): string[] {
+  const supplied = new Set(expectedFacts.map((f) => f.id));
+  const touched = [button.keepFactId, ...(button.retireFactIds ?? [])].filter(
+    (id): id is string => Boolean(id),
+  );
+  return touched.filter((id) => !supplied.has(id));
+}
+
 /** Press one inbox button for a pending report. */
 export async function moderationAct(input: ModerationActInput, actor: AdminUser = OPS_ACTOR): Promise<{ ok: true; reportId: string; action: ModerationAction }> {
   const reportId = input.reportId.trim();
@@ -377,6 +393,15 @@ export async function moderationAct(input: ModerationActInput, actor: AdminUser 
 
   const item = await loadPendingItem(reportId);
   const button = buttonForAction(item, input);
+  if (input.action === "resolve_duplicate") {
+    const unbound = unboundDuplicateResolutionIds(button, input.expectedFacts);
+    if (unbound.length > 0) {
+      throw new ModerationRequestError(
+        `expectedFacts must include the reviewed revision for ${unbound.join(", ")}.`,
+        400,
+      );
+    }
+  }
   const note = input.note?.trim()
     ? `${input.note.trim()} | via Ops Assistant`
     : "via Ops Assistant";
@@ -543,10 +568,17 @@ export async function moderationCopilot(reportId: string, actor: AdminUser = OPS
   review: CopilotReview;
   buttons: ModerationButton[];
   recommendation: ModerationRecommendation;
+  /**
+   * Firestore revisions of the facts shown to the reviewer, captured before
+   * the copilot await so a concurrent fact write cannot slip an auto-action
+   * past the transaction guard.
+   */
+  expectedFacts: Array<{ id: string; updateTime: string }>;
 }> {
   const id = reportId.trim();
   if (!id) throw new ModerationRequestError("reportId is required.", 400);
   const item = await loadPendingItem(id);
+  const expectedFacts = reviewedFactRevisions(item);
   const { reviewReportWithCopilot } = await import("./report-copilot.server");
   const review = await reviewReportWithCopilot({
     topic: item.report.topic,
@@ -604,5 +636,5 @@ export async function moderationCopilot(reportId: string, actor: AdminUser = OPS
       recommendation,
     },
   });
-  return { reportId: id, review, buttons: item.buttons, recommendation };
+  return { reportId: id, review, buttons: item.buttons, recommendation, expectedFacts };
 }

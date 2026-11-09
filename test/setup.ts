@@ -349,6 +349,7 @@ export type FirestoreDoubleModule = Pick<
   | "getDoc"
   | "listDocs"
   | "runQuery"
+  | "runQueryPage"
   | "deleteDoc"
   | "countCollection"
   | "runTransaction"
@@ -372,6 +373,8 @@ export interface RecordedFirestoreWrite {
 export interface RecordedFirestoreRead {
   kind: "get" | "list" | "query" | "count";
   target: string;
+  /** Snapshot readTime pinned by `runQueryPage`; absent on legacy reads. */
+  readTime?: string;
 }
 
 export interface FirestoreDouble extends ResettableDouble {
@@ -484,16 +487,52 @@ export function createFirestoreDouble(): FirestoreDouble {
     return toFirestoreDoc(path, stored);
   }
 
-  function matchingDocs(options: {
-    collection: string;
-    allDescendants?: boolean;
-    filters?: QueryFilter[];
-  }): { path: string; stored: StoredDoc }[] {
+  function matchingDocs(
+    source: Map<string, StoredDoc>,
+    options: {
+      collection: string;
+      allDescendants?: boolean;
+      filters?: QueryFilter[];
+    },
+  ): { path: string; stored: StoredDoc }[] {
     const filters = options.filters ?? [];
-    return Array.from(store.entries())
+    return Array.from(source.entries())
       .filter(([path]) => inCollection(path, options.collection, options.allDescendants === true))
       .filter(([, stored]) => filters.every((filter) => matchesFilter(stored.data, filter)))
       .map(([path, stored]) => ({ path, stored }));
+  }
+
+  /**
+   * Shared filter/order/offset/limit evaluation for `runQuery` and
+   * `runQueryPage`. `__name__` orders by document path, matching Firestore's
+   * document-name ordering, instead of reading a data field that does not
+   * exist.
+   */
+  function queryPage(
+    source: Map<string, StoredDoc>,
+    options: {
+      collection: string;
+      allDescendants?: boolean;
+      filters?: QueryFilter[];
+      orderBy?: { field: string; direction?: "ASCENDING" | "DESCENDING" };
+      limit?: number;
+      offset?: number;
+    },
+  ): FirestoreDoc[] {
+    const orderBy = options.orderBy;
+    const ordered = matchingDocs(source, options).sort((left, right) => {
+      if (!orderBy) return compareJson(left.path, right.path);
+      const direction = orderBy.direction === "DESCENDING" ? -1 : 1;
+      const key = (entry: { path: string; stored: StoredDoc }) =>
+        orderBy.field === "__name__"
+          ? entry.path
+          : readFieldPath(entry.stored.data, orderBy.field);
+      return direction * compareJson(key(left), key(right));
+    });
+    const offset = options.offset ?? 0;
+    return ordered
+      .slice(offset, offset + (options.limit ?? 50))
+      .map(({ path, stored }) => toFirestoreDoc(path, stored));
   }
 
   type TransactionWrite =
@@ -517,6 +556,26 @@ export function createFirestoreDouble(): FirestoreDouble {
         },
       ]),
     );
+  }
+
+  // `runQueryPage` snapshot semantics: an unpinned read captures an immutable
+  // clone of the store under a deterministic readTime; a pinned read resolves
+  // that snapshot instead of the live store, so later writes cannot leak into
+  // an in-flight paged scan.
+  const snapshots = new Map<string, Map<string, StoredDoc>>();
+  let snapshotSeq = 0;
+
+  function nextSnapshotReadTime(): string {
+    snapshotSeq += 1;
+    return new Date(Date.UTC(2024, 5, 1, 0, 0, 0, 0) + snapshotSeq).toISOString();
+  }
+
+  function pinnedSnapshot(readTime: string): Map<string, StoredDoc> {
+    const snapshot = snapshots.get(readTime);
+    if (!snapshot) {
+      throw new Error(`FAILED_PRECONDITION: unknown snapshot readTime ${readTime}`);
+    }
+    return snapshot;
   }
 
   function isTransactionContention(error: unknown): boolean {
@@ -720,7 +779,7 @@ export function createFirestoreDouble(): FirestoreDouble {
     listDocs: async (collection, options = {}) => {
       readLog.push({ kind: "list", target: collection });
       const orderBy = options.orderBy;
-      const docs = matchingDocs({ collection })
+      const docs = matchingDocs(store, { collection })
         .sort((left, right) =>
           orderBy
             ? compareJson(
@@ -735,28 +794,37 @@ export function createFirestoreDouble(): FirestoreDouble {
     },
 
     runQuery: async (options) => {
-      readLog.push({ kind: "query", target: options.collection });
-      const orderBy = options.orderBy;
-      const ordered = matchingDocs(options).sort((left, right) => {
-        if (!orderBy) return compareJson(left.path, right.path);
-        const direction = orderBy.direction === "DESCENDING" ? -1 : 1;
-        return (
-          direction *
-          compareJson(
-            readFieldPath(left.stored.data, orderBy.field),
-            readFieldPath(right.stored.data, orderBy.field),
-          )
-        );
+      readLog.push({
+        kind: "query",
+        target: options.collection,
+        ...(options.readTime !== undefined ? { readTime: options.readTime } : {}),
       });
-      const offset = options.offset ?? 0;
-      return ordered
-        .slice(offset, offset + (options.limit ?? 50))
-        .map(({ path, stored }) => toFirestoreDoc(path, stored));
+      const source = options.readTime !== undefined ? pinnedSnapshot(options.readTime) : store;
+      return queryPage(source, options);
+    },
+
+    runQueryPage: async (options) => {
+      let source: Map<string, StoredDoc>;
+      let readTime: string;
+      if (options.readTime !== undefined) {
+        readTime = options.readTime;
+        source = pinnedSnapshot(readTime);
+      } else {
+        readTime = nextSnapshotReadTime();
+        source = cloneStore();
+        snapshots.set(readTime, source);
+      }
+      readLog.push({
+        kind: "query",
+        target: options.collection,
+        ...(options.readTime !== undefined ? { readTime: options.readTime } : {}),
+      });
+      return { docs: queryPage(source, options), readTime };
     },
 
     countCollection: async (collection, filters = [], options) => {
       readLog.push({ kind: "count", target: collection });
-      return matchingDocs({
+      return matchingDocs(store, {
         collection,
         filters,
         ...(options?.allDescendants ? { allDescendants: true } : {}),
@@ -818,6 +886,8 @@ export function createFirestoreDouble(): FirestoreDouble {
       writeLog.length = 0;
       readLog.length = 0;
       pendingWriteFailures.length = 0;
+      snapshots.clear();
+      snapshotSeq = 0;
       clock = 0;
     },
   });

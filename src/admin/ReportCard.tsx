@@ -8,7 +8,12 @@ import { LintFindings, type LintEvidence } from "@/admin/LintFindings";
 import { actOnReport, fetchFact } from "@/lib/admin/content.functions";
 import { isDuplicateFlag, isNonDuplicateFlag } from "@/lib/admin/quality-flags";
 import { QUANTITY_KINDS } from "../../shared/fact-lifecycle-contract.gen";
-import { COPILOT_VERDICTS, factRevisions, type Entry } from "@/admin/report-bits";
+import {
+  COPILOT_VERDICTS,
+  factRevisions,
+  trackFirstSeenRevisions,
+  type Entry,
+} from "@/admin/report-bits";
 import { CopilotPanel } from "./CopilotPanel";
 import { ReportAuditTrail } from "./ReportAuditTrail";
 
@@ -131,6 +136,42 @@ export function ReportCard({ entry }: { entry: Entry }) {
     surprise_factor: entry.fact?.surprise_factor ?? 2,
     context: entry.fact?.context || entry.report.explanation || "",
   });
+  const [manualCandidate, setManualCandidate] = useState<NonNullable<Entry["fact"]> | null>(null);
+  const [manualCandidateId, setManualCandidateId] = useState("");
+  // Revisions of the facts as first rendered. Query refetches hand this card
+  // new props under the same key, so the mutation must bind the versions the
+  // reviewer saw, not whatever the latest props happen to carry. Candidates
+  // that appear later (a refetch adds a duplicate, or the admin looks one up
+  // manually) are captured the first time they show up.
+  const [trackedFacts, setTrackedFacts] = useState(() =>
+    factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
+  );
+  // Set after a mutation succeeds. If the report stays pending, the next review
+  // starts from the refreshed facts instead of the pre-resolution revisions.
+  const [resetAfterResolve, setResetAfterResolve] = useState(false);
+  let tracked = trackedFacts;
+  if (resetAfterResolve) {
+    const fresh = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
+    // Compare only the ids the props carry. A tracked manual candidate that is
+    // not listed must not trigger a reset before the refetch lands.
+    const unchanged = fresh.every((f) =>
+      trackedFacts.some((t) => t.id === f.id && t.updateTime === f.updateTime),
+    );
+    if (!unchanged) {
+      tracked = fresh;
+      setTrackedFacts(fresh);
+      setResetAfterResolve(false);
+    }
+  }
+  const reviewedFacts = trackFirstSeenRevisions(tracked, [
+    entry.fact,
+    ...(entry.duplicateFacts ?? []),
+    manualCandidate,
+  ]);
+  if (reviewedFacts !== tracked) {
+    // Render-phase state update (React's derived-state pattern), no effect needed.
+    setTrackedFacts([...reviewedFacts]);
+  }
 
   const mutation = useMutation({
     mutationFn: (
@@ -192,6 +233,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
           retireFactId: isObj ? params.retireFactId : undefined,
           retireFactIds: isObj ? params.retireFactIds : undefined,
           expectedFacts: factRevisions([
+            ...reviewedFacts,
             entry.fact,
             ...(entry.duplicateFacts ?? []),
             manualCandidate,
@@ -201,6 +243,9 @@ export function ReportCard({ entry }: { entry: Entry }) {
       });
     },
     onSuccess: () => {
+      setResetAfterResolve(true);
+      setManualCandidate(null);
+      setManualCandidateId("");
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["facts"] });
     },
@@ -214,8 +259,6 @@ export function ReportCard({ entry }: { entry: Entry }) {
     entry.report.reason?.toLowerCase().includes("conflicting_answer") ||
     Boolean(entry.fact?.quality_flags?.some(isDuplicateFlag));
 
-  const [manualCandidateId, setManualCandidateId] = useState("");
-  const [manualCandidate, setManualCandidate] = useState<NonNullable<Entry["fact"]> | null>(null);
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError] = useState<string | null>(null);
   const fetchFactFn = useServerFn(fetchFact);
@@ -1153,7 +1196,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
                 setManualLoading(true);
                 setManualError(null);
                 try {
-                  const res = await fetchFactFn({ data: { factId: id } });
+                  const res = await fetchFactFn({ data: { id } });
                   if (res) {
                     setManualCandidate(res as NonNullable<Entry["fact"]>);
                   } else {

@@ -21,6 +21,8 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
         review: CopilotResult;
         safe: boolean;
         reasons: string[];
+        /** Revisions of the facts as they were when the copilot evaluated them. */
+        expectedFacts: Array<{ id: string; updateTime: string }>;
       }
     >
   >({});
@@ -52,12 +54,22 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
           ...(entry.report.duplicateFactIds ?? []),
         ].filter(Boolean);
 
+        // Bind the revisions the reviewer is about to see before the copilot
+        // await; a refetch mid-evaluation must not rebind the review.
+        const reviewedSnapshot = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
+
         const review = await runCopilot({
           data: {
             reportId: entry.report.id,
             candidateFactIds: candidateFactIds.length > 0 ? candidateFactIds : undefined,
           },
         });
+        // Prefer the revisions the copilot actually read (including appended
+        // candidates); the pre-await snapshot covers anything it did not return.
+        const expectedFacts = factRevisions([
+          ...(review.evaluatedFacts ?? []),
+          ...reviewedSnapshot,
+        ]);
 
         const allCandidates: DuplicateFactCandidate[] = [
           ...(entry.fact
@@ -97,13 +109,26 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
         ];
 
         const safety = isDuplicateDecisionSafe(review, allCandidates);
+        // The copilot may append server-side candidates (candidateFactIds) that
+        // are not in the snapshot. Refuse bulk apply when any resolution ID has
+        // no bound revision, because the transaction cannot check it.
+        const resolutionIds = [
+          review.duplicateResolution?.keepFactId,
+          ...(review.duplicateResolution?.retireFactIds ?? []),
+        ].filter((id): id is string => Boolean(id));
+        const unboundReasons = resolutionIds
+          .filter((id) => !expectedFacts.some((f) => f.id === id))
+          .map((id) => `Fact ${id} has no reviewed revision; cannot bind it to the resolution.`);
+        const reasons = [...safety.reasons, ...unboundReasons];
+        const safe = reasons.length === 0;
         newEvals[entry.report.id] = {
           review,
-          safe: safety.safe,
-          reasons: safety.reasons,
+          safe,
+          reasons,
+          expectedFacts,
         };
 
-        if (safety.safe) {
+        if (safe) {
           newSelected.add(entry.report.id);
         }
       } catch (err) {
@@ -152,6 +177,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
     setIsApplying(true);
     setApplyResult(null);
     let successCount = 0;
+    const failedIds = new Set<string>();
     const toApply = entries.filter((e) => selectedIds.has(e.report.id));
     const total = toApply.length;
     setApplyProgress({ current: 0, total });
@@ -160,7 +186,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
       const entry = toApply[i];
       setApplyProgress({ current: i + 1, total });
       const ev = evaluations[entry.report.id];
-      if (!ev?.review?.duplicateResolution) continue;
+      if (!ev?.review?.duplicateResolution || !ev.expectedFacts) continue;
 
       const dup = ev.review.duplicateResolution;
       try {
@@ -171,7 +197,11 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
             keepFactId: dup.keepFactId ?? undefined,
             retireFactIds: dup.retireFactIds,
             correctedNumber: ev.review.suggested?.true_number,
-            expectedFacts: factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
+            expectedFacts: factRevisions([
+              ...ev.expectedFacts,
+              entry.fact,
+              ...(entry.duplicateFacts ?? []),
+            ]),
             note: dup.reason,
             copilot: {
               verdict: ev.review.verdict,
@@ -185,7 +215,17 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
         successCount++;
       } catch (err) {
         console.error(`Failed to apply duplicate resolution for ${entry.report.id}:`, err);
+        failedIds.add(entry.report.id);
       }
+    }
+
+    // A failed apply (for example "Fact changed since review") leaves a stale
+    // evaluation behind. Drop it so the entry counts as unevaluated and can be
+    // re-evaluated against the current facts.
+    if (failedIds.size > 0) {
+      setEvaluations((prev) =>
+        Object.fromEntries(Object.entries(prev).filter(([id]) => !failedIds.has(id))),
+      );
     }
 
     setIsApplying(false);

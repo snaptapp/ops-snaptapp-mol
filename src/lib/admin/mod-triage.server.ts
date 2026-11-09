@@ -38,7 +38,7 @@ export async function runModQueueTriage(opts: { dryRun: boolean; limit?: number;
     if (Date.now() >= deadline) break;
     const base = { reportId: report.id, topic: report.topic, claimStatement: report.claimStatement };
     try {
-      const { review, recommendation } = await moderationCopilot(report.id, opts.actor);
+      const { review, recommendation, expectedFacts } = await moderationCopilot(report.id, opts.actor);
       const decision = autoTriageDecision(review, recommendation);
       const item: TriageRunItem = {
         ...base,
@@ -55,6 +55,7 @@ export async function runModQueueTriage(opts: { dryRun: boolean; limit?: number;
           reportId: report.id,
           action: recommendation.action,
           correctedNumber: recommendation.correctedNumber,
+          expectedFacts,
           note: `AI auto-triage: ${decision.reason}`,
           copilot: {
             verdict: review.verdict,

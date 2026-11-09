@@ -184,14 +184,33 @@ export interface QueryFilter {
   value: unknown;
 }
 
-export async function runQuery(options: {
+export interface QueryOptions {
   collection: string;
   allDescendants?: boolean;
   filters?: QueryFilter[];
   orderBy?: { field: string; direction?: "ASCENDING" | "DESCENDING" };
   limit?: number;
   offset?: number;
-}): Promise<FirestoreDoc[]> {
+  /**
+   * Pin the read to a snapshot `readTime` previously returned by
+   * `runQueryPage`, so every page of a paged scan observes one consistent
+   * view. The value is always server-issued; callers must never generate it.
+   */
+  readTime?: string;
+}
+
+export interface QueryPage {
+  docs: FirestoreDoc[];
+  /**
+   * Server-issued snapshot timestamp for this response. Firestore guarantees
+   * the final `readTime` of a response stream also applies to the documents
+   * returned earlier in that response, so the last non-empty value is the one
+   * to pin on follow-up requests.
+   */
+  readTime?: string;
+}
+
+export async function runQueryPage(options: QueryOptions): Promise<QueryPage> {
   const filters = options.filters ?? [];
   const structuredQuery: Record<string, unknown> = {
     from: [
@@ -234,11 +253,37 @@ export async function runQuery(options: {
     ];
   }
 
-  const raw = await request<{ document?: Parameters<typeof toDoc>[0] }[]>(
-    `${baseUrl()}:runQuery`,
-    { method: "POST", body: JSON.stringify({ structuredQuery }) },
-  );
-  return raw.filter((entry) => entry.document).map((entry) => toDoc(entry.document!));
+  const raw = await request<
+    { document?: Parameters<typeof toDoc>[0]; readTime?: string }[]
+  >(`${baseUrl()}:runQuery`, {
+    method: "POST",
+    body: JSON.stringify({
+      structuredQuery,
+      ...(options.readTime !== undefined ? { readTime: options.readTime } : {}),
+    }),
+  });
+  const docs: FirestoreDoc[] = [];
+  let readTime: string | undefined;
+  for (const entry of raw) {
+    if (entry.document) docs.push(toDoc(entry.document));
+    if (typeof entry.readTime === "string" && entry.readTime.length > 0) {
+      readTime = entry.readTime;
+    }
+  }
+  if (
+    options.readTime !== undefined &&
+    readTime !== undefined &&
+    readTime !== options.readTime
+  ) {
+    throw new Error(
+      `Firestore runQuery snapshot mismatch: pinned readTime ${options.readTime} but server returned ${readTime}`,
+    );
+  }
+  return { docs, readTime };
+}
+
+export async function runQuery(options: QueryOptions): Promise<FirestoreDoc[]> {
+  return (await runQueryPage(options)).docs;
 }
 
 /** Patch a subset of fields on an existing document. Paths listed in

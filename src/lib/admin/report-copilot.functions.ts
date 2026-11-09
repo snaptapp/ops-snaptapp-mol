@@ -95,7 +95,14 @@ export const runReportCopilot = createServerFn({ method: "POST" })
         model: review.model,
       } satisfies Record<string, unknown>,
     });
-    return review;
+    // Revisions of every fact the copilot evaluated, including candidates
+    // appended from candidateFactIds. Callers bind these to the resolution.
+    const evaluatedFacts = [fact, ...duplicateFacts].flatMap((f) =>
+      f && typeof f.updateTime === "string" && f.updateTime
+        ? [{ id: f.id, updateTime: f.updateTime }]
+        : [],
+    );
+    return { ...review, evaluatedFacts };
   });
 
 /** Chronological audit trail (copilot runs + admin resolutions) for one report. */

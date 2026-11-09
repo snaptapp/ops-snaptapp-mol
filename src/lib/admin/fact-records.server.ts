@@ -8,6 +8,7 @@ import {
   getDoc,
   normalizeKey,
   runQuery,
+  runQueryPage,
   type FirestoreDoc,
   type Json,
   type QueryFilter,
@@ -275,25 +276,44 @@ async function collectFactScan(
 ): Promise<{ docs: FirestoreDoc[]; truncated: boolean }> {
   const filters = factQueryFilters(input);
   const docs: FirestoreDoc[] = [];
+  // Offset pagination over live reads can skip or duplicate rows when facts
+  // are written mid-scan. The first page captures the server-issued snapshot
+  // readTime and every later page (including the cap probe) pins it, so the
+  // whole scan observes one consistent view.
+  const orderBy = { field: "__name__", direction: "ASCENDING" } as const;
+  let snapshotReadTime: string | undefined;
   for (;;) {
-    const batch = await runQuery({
+    const isFirstPage = docs.length === 0;
+    const page = await runQueryPage({
       collection: "fact_bank",
       filters,
+      orderBy,
       limit: FACT_SCAN_BATCH,
       offset: docs.length,
+      ...(snapshotReadTime !== undefined ? { readTime: snapshotReadTime } : {}),
     });
-    docs.push(...batch);
-    if (batch.length < FACT_SCAN_BATCH) return { docs, truncated: false };
+    if (isFirstPage) {
+      snapshotReadTime = page.readTime;
+    }
+    docs.push(...page.docs);
+    if (page.docs.length < FACT_SCAN_BATCH) return { docs, truncated: false };
+    if (snapshotReadTime === undefined || snapshotReadTime.length === 0) {
+      throw new Error(
+        "collectFactScan: fact_bank scan requires a consistent snapshot but the first page returned no readTime; refusing to continue across inconsistent reads.",
+      );
+    }
     if (docs.length >= FACT_SCAN_LIMIT) {
       // A full batch at the cap is ambiguous: probe once so an exact-boundary
       // result set is not reported as truncated.
-      const probe = await runQuery({
+      const probe = await runQueryPage({
         collection: "fact_bank",
         filters,
+        orderBy,
         limit: 1,
         offset: docs.length,
+        readTime: snapshotReadTime,
       });
-      return { docs, truncated: probe.length > 0 };
+      return { docs, truncated: probe.docs.length > 0 };
     }
   }
 }
