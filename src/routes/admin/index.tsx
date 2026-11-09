@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Badge, Button, Card, CardLabel } from "@/index";
+import { Badge, Button, Card, CardLabel, StatValue } from "@/design-system/more-or-less-trivia-party-36914f";
 import { CountBar, StatusPie } from "@/admin/charts";
 import { ErrorNote, PageHead } from "@/admin/AdminShell";
 import { useAdminAuth } from "@/admin/auth";
@@ -41,7 +41,7 @@ function OverviewPage() {
     <>
       <PageHead
         title="Overview"
-        description="Live counts and charts from Cloud Firestore."
+        description="More or Less · Operations"
         actions={data ? <Badge tone="lime">{data.user.email ?? data.user.uid}</Badge> : null}
       />
       <ErrorNote error={error} />
@@ -51,9 +51,7 @@ function OverviewPage() {
           <div className="admin-grid">
             <Card>
               <CardLabel>Active facts</CardLabel>
-              <p className="admin-stat" data-tone="lime">
-                {data.active}
-              </p>
+              <StatValue value={data.active} />
             </Card>
             <Card>
               <CardLabel>Pending facts</CardLabel>
@@ -89,7 +87,7 @@ function OverviewPage() {
               <CardLabel>Games (7d)</CardLabel>
               <p className="admin-stat">{data.games7d ?? "—"}</p>
               {data.gamesIndexUnavailable ? (
-                <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13, margin: 0 }}>
+                <p className="ds-label">
                   game_history index not enabled yet
                 </p>
               ) : null}
@@ -102,26 +100,26 @@ function OverviewPage() {
             </Card>
           </div>
 
-          <Card>
+          <section className="admin-overview-actions" aria-label="Quick actions">
             <CardLabel>Jump in</CardLabel>
-            <div className="admin-toolbar" style={{ marginTop: "var(--ds-arena-space-3)" }}>
+            <div className="admin-toolbar">
               <Link to="/admin/facts" style={{ textDecoration: "none" }}>
                 <Button size="sm" variant="primary">
                   Curate the fact bank →
                 </Button>
               </Link>
               <Link to="/admin/reports" style={{ textDecoration: "none" }}>
-                <Button size="sm" variant="primary">
+                <Button size="sm" variant="daily">
                   Clear moderation queue ({data.reportsPending}) →
                 </Button>
               </Link>
               <Link to="/admin/analytics" style={{ textDecoration: "none" }}>
-                <Button size="sm" variant="ghost">
+                <Button size="sm" variant="primary">
                   Game analytics →
                 </Button>
               </Link>
             </div>
-          </Card>
+          </section>
 
           <div className="admin-chart-grid">
             <StatusPie title="Fact bank status" rows={data.series.factStatus} />
@@ -131,7 +129,7 @@ function OverviewPage() {
             <CountBar
               title="Active facts by genre"
               rows={data.series.categories}
-              color="#d7f24a"
+              color="var(--ds-arena-color-lime)"
               emptyMessage="No active facts yet"
             />
             <StatusPie

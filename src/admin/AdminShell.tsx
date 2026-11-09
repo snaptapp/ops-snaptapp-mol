@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Badge, Button, Card, CardTitle } from "@/index";
+import { Badge, Button, Card, CardTitle } from "@/design-system/more-or-less-trivia-party-36914f";
 import {
   FACT_STATUSES,
   STATUS_TRANSITIONS,
@@ -187,11 +187,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         ) : null}
       </header>
       <aside className="admin-sidebar">
-        <div className="admin-brand" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="admin-brand">
           <img
             src="/more-or-less-icon.png"
             alt="More or Less"
-            style={{ width: "30px", height: "30px", borderRadius: "6px", objectFit: "contain" }}
           />
           <div>
             More or <span>Less</span>
