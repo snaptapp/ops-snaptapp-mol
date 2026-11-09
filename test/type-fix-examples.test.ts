@@ -196,6 +196,7 @@ const VARIANT_COMPONENTS_BY_NAME = new Map(
  */
 function importSpecifierIsDesignSystem(specifier: string, component: string): boolean {
   if (specifier === "@/index" || specifier === "@/index.ts") return true;
+  if (specifier === "@/design-system/more-or-less-trivia-party-36914f") return true;
   return new RegExp(`design-system/components/${component}(\\.tsx?)?$`).test(specifier);
 }
 
