@@ -1,7 +1,7 @@
 import { createElement, type ReactElement, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { factRevisions } from "@/admin/report-bits";
+import { factRevisions, trackFirstSeenRevisions } from "@/admin/report-bits";
 import { ReportCard } from "@/admin/ReportCard";
 import { BulkDuplicateHub } from "@/admin/BulkDuplicateHub";
 
@@ -249,6 +249,32 @@ describe("factRevisions first-nonempty-wins", () => {
       { id: "f1", updateTime: "rev-1" },
       { id: "f2", updateTime: "rev-3" },
     ]);
+  });
+});
+
+describe("trackFirstSeenRevisions", () => {
+  it("keeps a manually looked-up candidate's revision when a refetch later lists it as a duplicate", () => {
+    const tracked = factRevisions([{ id: "fact_a", updateTime: "rev-a1" }]);
+    // Admin looks up fact_c manually at rev-c1.
+    const afterManual = trackFirstSeenRevisions(tracked, [
+      { id: "fact_a", updateTime: "rev-a1" },
+      { id: "fact_c", updateTime: "rev-c1" },
+    ]);
+    // Refetch lists fact_c as a duplicate after it changed to rev-c2.
+    const afterRefetch = trackFirstSeenRevisions(afterManual, [
+      { id: "fact_a", updateTime: "rev-a1" },
+      { id: "fact_c", updateTime: "rev-c2" },
+    ]);
+
+    expect(afterRefetch).toEqual([
+      { id: "fact_a", updateTime: "rev-a1" },
+      { id: "fact_c", updateTime: "rev-c1" },
+    ]);
+  });
+
+  it("returns the same array when nothing new is seen", () => {
+    const tracked = factRevisions([{ id: "fact_a", updateTime: "rev-a1" }]);
+    expect(trackFirstSeenRevisions(tracked, [{ id: "fact_a", updateTime: "rev-a2" }])).toBe(tracked);
   });
 });
 

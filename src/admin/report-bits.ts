@@ -37,3 +37,18 @@ export const COPILOT_VERDICTS: Record<CopilotResult["verdict"], { label: string;
   unclear: { label: "Unclear", tone: "neutral" },
 };
 
+
+/**
+ * Adds the revision of each fact id not already tracked. Earlier revisions win,
+ * so a candidate first shown (or manually looked up) keeps the version the
+ * reviewer saw even when a later refetch reports a newer one. Returns the same
+ * array when nothing new was added.
+ */
+export function trackFirstSeenRevisions(
+  tracked: ReadonlyArray<{ id: string; updateTime: string }>,
+  incoming: ReadonlyArray<{ id: string; updateTime?: string | null } | null | undefined>,
+): ReadonlyArray<{ id: string; updateTime: string }> {
+  const known = new Set(tracked.map((f) => f.id));
+  const added = factRevisions(incoming).filter((f) => !known.has(f.id));
+  return added.length > 0 ? [...tracked, ...added] : tracked;
+}
