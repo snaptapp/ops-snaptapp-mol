@@ -47,7 +47,7 @@ vi.mock("@/lib/firebase/firestore.server", async () => {
 import { toFact, type FactRecord } from "@/lib/admin/content.server";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CONTENT_SERVER = "src/lib/admin/content.server.ts";
+const FACT_RECORDS_SERVER = "src/lib/admin/fact-records.server.ts";
 
 // ---------------------------------------------------------------------------
 // The declared FactRecord member set, read out of the interface
@@ -58,7 +58,7 @@ const CONTENT_SERVER = "src/lib/admin/content.server.ts";
  * assertion below tracks the declaration instead of a copy of it.
  */
 function declaredFactRecordKeys(): string[] {
-  const absolute = path.join(REPO_ROOT, CONTENT_SERVER);
+  const absolute = path.join(REPO_ROOT, FACT_RECORDS_SERVER);
   const sourceFile = ts.createSourceFile(
     absolute,
     readFileSync(absolute, "utf8"),
@@ -86,7 +86,7 @@ function declaredFactRecordKeys(): string[] {
 
   if (declarations.length !== 1) {
     throw new Error(
-      `expected exactly one FactRecord interface declaration in ${CONTENT_SERVER}, ` +
+      `expected exactly one FactRecord interface declaration in ${FACT_RECORDS_SERVER}, ` +
       `found ${declarations.length}`,
     );
   }
