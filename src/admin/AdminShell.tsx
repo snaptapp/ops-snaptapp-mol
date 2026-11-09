@@ -177,7 +177,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </nav>
             <div className="admin-sidebar-footer">
               <span>{user.email}</span>
-              <Link to="/admin/account" className="ds-button ds-button--ghost ds-button--sm ds-focusable" onClick={() => setMenuOpen(false)}>Settings</Link>
+              <Link to="/admin/account" className="ds-button ds-button--primary ds-button--sm ds-focusable" onClick={() => setMenuOpen(false)}>Settings</Link>
               <Button variant="ghost" size="sm" onClick={() => { setMenuOpen(false); void signOutAdmin(); }}>
                 Sign out
               </Button>
@@ -211,7 +211,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="admin-sidebar-footer">
           <Badge tone="lime">Admin</Badge>
           <span>{user.email}</span>
-          <Link to="/admin/account" className="ds-button ds-button--ghost ds-button--sm ds-focusable">Settings</Link>
+          <Link to="/admin/account" className="ds-button ds-button--primary ds-button--sm ds-focusable">Settings</Link>
           <Button variant="ghost" size="sm" onClick={() => void signOutAdmin()}>
             Sign out
           </Button>
