@@ -1,34 +1,4 @@
 {
-  "name": "custom_design_system_tanstack",
-  "private": true,
-  "sideEffects": [
-    "**/*.css"
-  ],
-  "type": "module",
-  "packageManager": "npm@10.9.8",
-  "scripts": {
-    "dev": "vite dev",
-    "gate": "node scripts/quality-gate.mjs",
-    "build": "node scripts/quality-gate.mjs && node scripts/predeploy-freshness.mjs && vite build",
-    "build:dev": "node scripts/quality-gate.mjs && vite build --mode development",
-    "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
-    "deploy:version": "npm run build && wrangler versions upload",
-    "cf-typegen": "wrangler types",
-    "typecheck": "node node_modules/typescript7/bin/tsc --noEmit",
-    "lint": "eslint .",
-    "check:lockfiles": "node scripts/check-lockfiles.mjs",
-    "check:suppressions": "node scripts/check-suppressions.mjs",
-    "check:contract-literals": "node scripts/check-contract-literals.mjs",
-    "check:contract": "node scripts/check-contract-drift.mjs",
-    "check:artifacts": "node scripts/check-shared-artifacts.mjs",
-    "check:ops-assistant": "node scripts/check-ops-assistant.mjs",
-    "check:artifact-freshness": "node scripts/check-artifact-freshness.mjs",
-    "sync:artifacts": "node scripts/sync-shared-artifacts.mjs",
-    "sync:shared-artifacts": "node scripts/sync-shared-artifacts.mjs",
-    "sync:contract": "node scripts/sync-contract-source.mjs",
-    "test": "vitest run"
-  },
   "dependencies": {
     "@amplitude/analytics-browser": "^2.47.4",
     "@cloudflare/vite-plugin": "^1.25.5",
@@ -42,6 +12,8 @@
     "date-fns": "^4.1.0",
     "firebase": "^12.18.0",
     "firebase-admin": "^14.3.0",
+    "lucide-react": "^1.37.0",
+    "motion": "^13.1.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -73,9 +45,39 @@
     "vitest": "5.0.1",
     "wrangler": "^4.127.1"
   },
+  "name": "custom_design_system_tanstack",
   "overrides": {
     "recharts": {
       "react-is": "$react"
     }
-  }
+  },
+  "packageManager": "npm@10.9.8",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/quality-gate.mjs && node scripts/predeploy-freshness.mjs && vite build",
+    "build:dev": "node scripts/quality-gate.mjs && vite build --mode development",
+    "cf-typegen": "wrangler types",
+    "check:artifact-freshness": "node scripts/check-artifact-freshness.mjs",
+    "check:artifacts": "node scripts/check-shared-artifacts.mjs",
+    "check:contract": "node scripts/check-contract-drift.mjs",
+    "check:contract-literals": "node scripts/check-contract-literals.mjs",
+    "check:lockfiles": "node scripts/check-lockfiles.mjs",
+    "check:ops-assistant": "node scripts/check-ops-assistant.mjs",
+    "check:suppressions": "node scripts/check-suppressions.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:version": "npm run build && wrangler versions upload",
+    "dev": "vite dev",
+    "gate": "node scripts/quality-gate.mjs",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "sync:artifacts": "node scripts/sync-shared-artifacts.mjs",
+    "sync:contract": "node scripts/sync-contract-source.mjs",
+    "sync:shared-artifacts": "node scripts/sync-shared-artifacts.mjs",
+    "test": "vitest run",
+    "typecheck": "node node_modules/typescript7/bin/tsc --noEmit"
+  },
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "type": "module"
 }

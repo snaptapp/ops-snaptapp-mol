@@ -1,1 +1,6 @@
 tech_stack = "custom_design_system_tanstack"
+
+[[libraries]]
+project_id = "1b68fd93-7a1d-4bd1-8843-7e53244811e9"
+version = "1.0.0"
+slug = "more-or-less-trivia-party-36914f"
