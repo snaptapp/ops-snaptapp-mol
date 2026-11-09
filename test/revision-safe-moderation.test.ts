@@ -180,6 +180,92 @@ describe("Task 7 revision-safe moderation", () => {
   });
 });
 
+describe("reviewed revision binding", () => {
+  it("rejects a unit-only drift that the old number/status guard could not see", async () => {
+    const { resolveReport } = await import("@/lib/admin/content.server");
+    seedFact("f_rev", { status: STATUS.active, true_number: 70, unit: "mph" });
+    const reviewed = factUpdateTime("f_rev");
+    // A concurrent edit lands after the review snapshot: unit changes, number
+    // and status do not, so only the revision binding can catch it.
+    await firestoreDouble().module.patchDoc("fact_bank/f_rev", { unit: "km/h" });
+    firestoreDouble().seed("trivia_reports/r_rev", {
+      factId: "f_rev",
+      reportSource: "player_report",
+      status: "pending_review",
+    });
+
+    await expect(
+      resolveReport({
+        reportId: "r_rev",
+        action: "fix_number",
+        factId: "f_rev",
+        correctedNumber: 65,
+        expectedFacts: [{ id: "f_rev", updateTime: reviewed }],
+      }),
+    ).rejects.toThrow("Fact changed since review");
+
+    const fact = firestoreDouble().document("fact_bank/f_rev")!;
+    expect(fact.data["true_number"]).toBe(70);
+    expect(fact.data["unit"]).toBe("km/h");
+    expect(fact.data["status"]).toBe(STATUS.active);
+    expect(firestoreDouble().document("trivia_reports/r_rev")!.data["status"]).toBe("pending_review");
+  });
+
+  it("commits when every bound revision still matches", async () => {
+    const { resolveReport } = await import("@/lib/admin/content.server");
+    seedFact("f_ok", { status: STATUS.active });
+    const reviewed = factUpdateTime("f_ok");
+    firestoreDouble().seed("trivia_reports/r_ok", {
+      factId: "f_ok",
+      reportSource: "player_report",
+      status: "pending_review",
+    });
+
+    await resolveReport({
+      reportId: "r_ok",
+      action: "fix_number",
+      factId: "f_ok",
+      correctedNumber: 42,
+      expectedFacts: [{ id: "f_ok", updateTime: reviewed }],
+    });
+
+    expect(firestoreDouble().document("fact_bank/f_ok")!.data["true_number"]).toBe(42);
+    expect(firestoreDouble().document("trivia_reports/r_ok")!.data["status"]).toBe("resolved");
+  });
+
+  it("rejects when a duplicate-resolution dependency drifted", async () => {
+    const { resolveReport } = await import("@/lib/admin/content.server");
+    seedFact("f_keep", { status: STATUS.active });
+    seedFact("f_lose", { status: STATUS.disputed, disputed_reason: "fact_lint: duplicate_question" });
+    const keepRev = factUpdateTime("f_keep");
+    const loseRev = factUpdateTime("f_lose");
+    // The loser drifts after review; the keep fact does not.
+    await firestoreDouble().module.patchDoc("fact_bank/f_lose", { unit: "km/h" });
+    firestoreDouble().seed("trivia_reports/r_dup", {
+      factId: "f_keep",
+      reportSource: "player_report",
+      status: "pending_review",
+    });
+
+    await expect(
+      resolveReport({
+        reportId: "r_dup",
+        action: "resolve_duplicate",
+        keepFactId: "f_keep",
+        retireFactIds: ["f_lose"],
+        expectedFacts: [
+          { id: "f_keep", updateTime: keepRev },
+          { id: "f_lose", updateTime: loseRev },
+        ],
+      }),
+    ).rejects.toThrow("Fact changed since review");
+
+    expect(firestoreDouble().document("fact_bank/f_lose")!.data["status"]).toBe(STATUS.disputed);
+    expect(firestoreDouble().document("fact_bank/f_keep")!.data["status"]).toBe(STATUS.active);
+    expect(firestoreDouble().document("trivia_reports/r_dup")!.data["status"]).toBe("pending_review");
+  });
+});
+
 describe("Task 7 telemetry flag atomicity", () => {
   it("disputes the fact and creates the bound report in one transaction", async () => {
     const { flagQuestionTelemetry } = await import("@/lib/admin/ops.server");

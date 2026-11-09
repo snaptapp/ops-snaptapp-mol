@@ -137,7 +137,7 @@ describe("ops moderation queue", () => {
 
   it("rejects a fact changed since external review inside the transaction", async () => {
     await expect(moderationAct({ reportId: "r1", action: "fix_number", correctedNumber: 1977,
-      expectedFact: { id: "f1", trueNumber: 1976, status: "active" },
+      expectedFacts: [{ id: "f1", updateTime: "2000-01-01T00:00:00.000Z" }],
     })).rejects.toThrow("Fact changed since review");
     expect(firestoreDouble().document("fact_bank/f1")?.data["true_number"]).toBe(1978);
     expect(firestoreDouble().document("trivia_reports/r1")?.data["status"]).toBe("pending_review");

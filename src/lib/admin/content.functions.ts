@@ -388,6 +388,9 @@ export const actOnReport = createServerFn({ method: "POST" }).middleware([authMi
             prefilled: z.boolean(),
           })
           .optional(),
+        expectedFacts: z
+          .array(z.object({ id: z.string().min(1), updateTime: z.string().min(1) }))
+          .optional(),
       })
       .parse(data),
   )

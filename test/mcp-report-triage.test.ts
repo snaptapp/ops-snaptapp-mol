@@ -15,7 +15,8 @@ const item: ModerationQueueItem = {
     trueNumber: 70, presentedNumber: 40, unit: "mph", reason: "Wrong", feedbackText: "private feedback",
     status: "pending_review", createdAt: null, qualityFlags: [], duplicateFactIds: [], ombudsmanVerdict: null, factId: "f1" },
   fact: { id: "f1", subject: "Cheetah", angle: "Speed", question: "Cheetah speed", claim_template: "Speed is {n} mph",
-    true_number: 70, unit: "mph", status: "active", quality_flags: [], context: "", source_urls: [], as_of_year: null },
+    true_number: 70, unit: "mph", status: "active", quality_flags: [], context: "", source_urls: [], as_of_year: null,
+    updateTime: "2024-01-01T00:00:00.000Z" },
   duplicates: [], buttons: [{ action: "fix_number", label: "Fix" }, { action: "reject", label: "Reject" }],
 };
 async function review() {

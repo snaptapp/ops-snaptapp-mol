@@ -2223,6 +2223,9 @@ export async function findDuplicateFactsForReport(
  *  - A lint report that carries `fact_update_time` only restores a fact whose
  *    revision still matches; a stale binding resolves the report but leaves
  *    the fact untouched.
+ *  - `expectedFacts` binds the exact Firestore revisions the caller reviewed;
+ *    any fact write between review and commit aborts the resolution before a
+ *    mutation is queued.
  */
 export async function resolveReport(input: {
   reportId: string;
@@ -2253,7 +2256,14 @@ export async function resolveReport(input: {
   auditAfter?: Record<string, unknown>;
   /** Agent resolutions must not overwrite another moderator's completed work. */
   requirePending?: boolean;
-  expectedFact?: { id: string; trueNumber: number | null; status: string };
+  /**
+   * Firestore revisions the caller reviewed. Every listed fact document must
+   * still be at that `updateTime` inside the transaction; any concurrent write
+   * aborts the whole resolution instead of letting a stale review commit
+   * against a newer revision. A matching revision implies the reviewed field
+   * values, so no separate field comparison is needed.
+   */
+  expectedFacts?: ReadonlyArray<{ id: string; updateTime: string }>;
 }): Promise<{ ok: true }> {
   const now = new Date().toISOString();
   const actor = input.admin?.email ?? input.admin?.uid ?? "system";
@@ -2270,10 +2280,9 @@ export async function resolveReport(input: {
     if (input.requirePending && reportData["status"] !== "pending_review") {
       throw new Error("Report is no longer pending; no changes were made.");
     }
-    if (input.expectedFact) {
-      const expected = input.expectedFact;
+    for (const expected of input.expectedFacts ?? []) {
       const current = await tx.get(`fact_bank/${expected.id}`);
-      if (!current || current.data["true_number"] !== expected.trueNumber || current.data["status"] !== expected.status) {
+      if (!current || current.updateTime !== expected.updateTime) {
         throw new Error("Fact changed since review; no changes were made.");
       }
     }

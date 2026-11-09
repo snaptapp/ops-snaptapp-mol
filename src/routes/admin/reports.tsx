@@ -53,6 +53,21 @@ function displayOrMissing(value: string | null | undefined): string {
   return trimmed ? trimmed : "Not recorded";
 }
 
+/**
+ * Firestore revisions of the fact documents an admin reviewed, sent with the
+ * moderation action so the transaction can abort when any of them changed.
+ * Facts without a stored `updateTime` cannot be bound and are skipped.
+ */
+function factRevisions(
+  facts: ReadonlyArray<{ id: string; updateTime?: string | null } | null | undefined>,
+): Array<{ id: string; updateTime: string }> {
+  const seen = new Map<string, string>();
+  for (const fact of facts) {
+    if (fact?.updateTime) seen.set(fact.id, fact.updateTime);
+  }
+  return [...seen.entries()].map(([id, updateTime]) => ({ id, updateTime }));
+}
+
 function formatGuess(guess: string | undefined): string {
   if (!guess) return "Not recorded";
   switch (guess.toUpperCase()) {
@@ -461,6 +476,11 @@ export function ReportCard({ entry }: { entry: Entry }) {
           keepFactId: isObj ? params.keepFactId : undefined,
           retireFactId: isObj ? params.retireFactId : undefined,
           retireFactIds: isObj ? params.retireFactIds : undefined,
+          expectedFacts: factRevisions([
+            entry.fact,
+            ...(entry.duplicateFacts ?? []),
+            manualCandidate,
+          ]),
           copilot: copilotSnap ?? undefined,
         },
       });
@@ -1689,6 +1709,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
             keepFactId: dup.keepFactId ?? undefined,
             retireFactIds: dup.retireFactIds,
             correctedNumber: ev.review.suggested?.true_number,
+            expectedFacts: factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
             note: dup.reason,
             copilot: {
               verdict: ev.review.verdict,

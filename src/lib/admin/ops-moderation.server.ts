@@ -75,6 +75,8 @@ export interface ModerationFactSummary {
   source_urls: string[];
   /** Measurement/edition year the true_number covers; bounds copilot source periods. */
   as_of_year: number | null;
+  /** Firestore revision of the loaded document; null only when the read lacked one. */
+  updateTime: string | null;
 }
 
 export interface ModerationQueueItem {
@@ -114,7 +116,12 @@ export interface ModerationFactUpdates {
 }
 
 export interface ModerationActInput {
-  expectedFact?: { id: string; trueNumber: number | null; status: string };
+  /**
+   * Firestore revisions the caller reviewed. Merged with the revisions of the
+   * freshly loaded queue item, so a fact write between review and commit
+   * aborts the resolution inside the transaction.
+   */
+  expectedFacts?: ReadonlyArray<{ id: string; updateTime: string }>;
   reportId: string;
   action: ModerationAction;
   correctedNumber?: number;
@@ -159,6 +166,7 @@ function summarizeFact(fact: FactRecord): ModerationFactSummary {
     context: fact.context,
     source_urls: fact.source_urls ?? [],
     as_of_year: fact.as_of_year,
+    updateTime: fact.updateTime ?? null,
   };
 }
 
@@ -232,6 +240,26 @@ export function moderationButtons(
   }
   buttons.push({ action: "reject", label: "Reject report" });
   return buttons;
+}
+
+/**
+ * Firestore revisions of every fact shown in a queue item (primary fact plus
+ * duplicate candidates). Facts without a stored `updateTime` cannot be bound
+ * and are skipped; real Firestore documents always carry one.
+ */
+export function reviewedFactRevisions(
+  item: Pick<ModerationQueueItem, "fact" | "duplicates">,
+): Array<{ id: string; updateTime: string }> {
+  const revisions: Array<{ id: string; updateTime: string }> = [];
+  const seen = new Set<string>();
+  for (const fact of [item.fact, ...item.duplicates]) {
+    if (!fact || seen.has(fact.id)) continue;
+    seen.add(fact.id);
+    if (typeof fact.updateTime === "string" && fact.updateTime.length > 0) {
+      revisions.push({ id: fact.id, updateTime: fact.updateTime });
+    }
+  }
+  return revisions;
 }
 
 export async function loadPendingItem(reportId: string): Promise<ModerationQueueItem> {
@@ -380,7 +408,7 @@ export async function moderationAct(input: ModerationActInput, actor: AdminUser 
     retireFactIds: button.retireFactIds,
     admin: actor,
     requirePending: true,
-    expectedFact: input.expectedFact,
+    expectedFacts: [...(input.expectedFacts ?? []), ...reviewedFactRevisions(item)],
     audit,
     auditAfter: {
       action: input.action,

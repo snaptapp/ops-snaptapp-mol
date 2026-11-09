@@ -134,6 +134,7 @@ function readAct(body: unknown): ModerationActInput {
   if (keepFactId !== undefined && typeof keepFactId !== "string") {
     throw new ModerationRequestError("keepFactId must be a string.", 400);
   }
+  const expectedFacts = readExpectedFacts(raw["expectedFacts"]);
   return {
     reportId,
     action: action as ModerationAction,
@@ -141,8 +142,33 @@ function readAct(body: unknown): ModerationActInput {
     factUpdates: readUpdates(raw["factUpdates"]),
     note: typeof note === "string" ? note : undefined,
     keepFactId: typeof keepFactId === "string" ? keepFactId : undefined,
+    expectedFacts,
     copilot: readCopilot(raw["copilot"]),
   };
+}
+
+function readExpectedFacts(
+  value: unknown,
+): ModerationActInput["expectedFacts"] {
+  if (value === undefined || value === null) return undefined;
+  if (!Array.isArray(value)) {
+    throw new ModerationRequestError("expectedFacts must be an array.", 400);
+  }
+  const revisions: Array<{ id: string; updateTime: string }> = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new ModerationRequestError("expectedFacts entries must be objects.", 400);
+    }
+    const { id, updateTime } = entry as { id?: unknown; updateTime?: unknown };
+    if (typeof id !== "string" || !id.trim() || typeof updateTime !== "string" || !updateTime) {
+      throw new ModerationRequestError(
+        "expectedFacts entries must carry non-empty id and updateTime strings.",
+        400,
+      );
+    }
+    revisions.push({ id: id.trim(), updateTime });
+  }
+  return revisions;
 }
 
 function readUpdates(value: unknown): ModerationFactUpdates | undefined {

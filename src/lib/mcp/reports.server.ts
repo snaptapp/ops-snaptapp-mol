@@ -1,7 +1,7 @@
 import { ToolError } from "@lovable.dev/mcp-js";
 import type { AdminUser } from "@/lib/firebase/verify.server";
 import { listReports } from "@/lib/admin/content.server";
-import { loadPendingItem, moderationAct, recommendModerationAction, type ModerationQueueItem } from "@/lib/admin/ops-moderation.server";
+import { loadPendingItem, moderationAct, recommendModerationAction, reviewedFactRevisions, type ModerationQueueItem } from "@/lib/admin/ops-moderation.server";
 import { applySourcePolicy, type CopilotReview } from "@/lib/admin/report-copilot.server";
 import { autoTriageDecision } from "@/lib/admin/mod-triage";
 import { externalReviewSchema, type ExternalReview } from "./triage-schema";
@@ -60,7 +60,7 @@ export async function triageExternalReviews(
       if (decision.auto && !dryRun && recommendation.action) {
         if (control?.signal.aborted) break;
         await moderationAct({ reportId: input.reportId, action: recommendation.action,
-          expectedFact: item.fact ? { id: item.fact.id, trueNumber: item.fact.true_number, status: item.fact.status } : undefined,
+          expectedFacts: reviewedFactRevisions(item),
           correctedNumber: recommendation.correctedNumber, note: `External MCP review: ${input.rationale}`,
           copilot: { verdict: review.verdict, confidence: review.confidence, score: review.policy.score,
             needsReview: review.policy.needsReview, sources, warnings: review.policy.reasons,
