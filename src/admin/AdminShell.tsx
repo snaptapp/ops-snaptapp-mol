@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Badge, Button, Card, CardTitle } from "@/index";
+import { Badge, Button, Card, CardTitle } from "@/design-system/more-or-less-trivia-party-36914f";
 import {
   FACT_STATUSES,
   STATUS_TRANSITIONS,
@@ -177,7 +177,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </nav>
             <div className="admin-sidebar-footer">
               <span>{user.email}</span>
-              <Link to="/admin/account" className="ds-button ds-button--ghost ds-button--sm ds-focusable" onClick={() => setMenuOpen(false)}>Settings</Link>
+              <Link to="/admin/account" className="ds-button ds-button--primary ds-button--sm ds-focusable" onClick={() => setMenuOpen(false)}>Settings</Link>
               <Button variant="ghost" size="sm" onClick={() => { setMenuOpen(false); void signOutAdmin(); }}>
                 Sign out
               </Button>
@@ -187,11 +187,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
         ) : null}
       </header>
       <aside className="admin-sidebar">
-        <div className="admin-brand" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="admin-brand">
           <img
             src="/more-or-less-icon.png"
             alt="More or Less"
-            style={{ width: "30px", height: "30px", borderRadius: "6px", objectFit: "contain" }}
           />
           <div>
             More or <span>Less</span>
@@ -212,7 +211,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <div className="admin-sidebar-footer">
           <Badge tone="lime">Admin</Badge>
           <span>{user.email}</span>
-          <Link to="/admin/account" className="ds-button ds-button--ghost ds-button--sm ds-focusable">Settings</Link>
+          <Link to="/admin/account" className="ds-button ds-button--primary ds-button--sm ds-focusable">Settings</Link>
           <Button variant="ghost" size="sm" onClick={() => void signOutAdmin()}>
             Sign out
           </Button>
