@@ -84,7 +84,11 @@ function sourceFilesUnderSrc(): string[] {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       const absolute = path.join(directory, entry.name);
       if (entry.isDirectory()) {
-        walk(absolute);
+        // Skip vendored design-system copies (src/design-system/<library>-<hash>/):
+        // library-owned code with its own variant unions, not editable here.
+        const vendored =
+          path.basename(directory) === "design-system" && /-[0-9a-f]{6}$/.test(entry.name);
+        if (!vendored) walk(absolute);
         continue;
       }
       if (/\.tsx?$/.test(entry.name)) found.push(repoRelative(absolute));
@@ -192,6 +196,7 @@ const VARIANT_COMPONENTS_BY_NAME = new Map(
  */
 function importSpecifierIsDesignSystem(specifier: string, component: string): boolean {
   if (specifier === "@/index" || specifier === "@/index.ts") return true;
+  if (specifier === "@/design-system/more-or-less-trivia-party-36914f") return true;
   return new RegExp(`design-system/components/${component}(\\.tsx?)?$`).test(specifier);
 }
 

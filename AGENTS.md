@@ -18,7 +18,9 @@
 12. **Admin onboarding:** Account creation lazy-loads the privileged Cloud client only after live admin middleware; role grants use the caller-authorized RPC, and password setup uses email recovery without sharing temporary passwords. External hosts without managed account-creation credentials fail closed for new accounts.
 13. **Account identities:** Normalize managed identity provider identifiers for display; never use managed OAuth sign-in as an account-link operation, because it can replace the current admin session. Fail clearly without redirecting when linking is unavailable.
 14. **Grounded review configuration:** Vertex project selection uses explicit Google/Firebase project overrides, then the existing Firebase service account project, so working Firebase credentials do not require redundant project settings.
-15. **Lockfile test fixtures:** Inject read-only tracking query responses into the checker for disk fixture tests; retain real CLI fail-closed coverage and the production Git adapter, without mutating repository metadata during tests.
+15. **Vendored design system:** Repo scans (contract literals, variant checks) skip `src/design-system/<library>-<hash>/`, because that copy is library-owned and cannot be edited locally.
+16. **Lockfile test fixtures:** Inject read-only tracking query responses into the checker for disk fixture tests; retain real CLI fail-closed coverage and the production Git adapter, without mutating repository metadata during tests.
+17. **Shared UI:** The app entry re-exports attached design-system controls and loads its theme after legacy compatibility tokens, so existing screens use the managed components without rewriting their behavior. Keep mobile wrapping and touch accommodations, but let the attached components own typography and visual variants.
 
 
 ## Essential Commands

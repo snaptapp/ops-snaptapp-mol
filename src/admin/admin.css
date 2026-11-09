@@ -41,10 +41,20 @@
 }
 
 .admin-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-arena-space-3);
   font-family: var(--ds-arena-font-display);
-  font-size: 22px;
-  letter-spacing: 0.04em;
+  font-size: var(--ds-arena-text-xl);
+  letter-spacing: 0;
   text-transform: uppercase;
+}
+
+.admin-brand img {
+  width: var(--ds-arena-space-6);
+  height: var(--ds-arena-space-6);
+  border-radius: var(--ds-arena-radius-sm);
+  object-fit: contain;
 }
 
 .admin-brand span {
@@ -108,19 +118,9 @@
 .admin-error { overflow-wrap: anywhere; }
 .admin-shell .ds-button,
 .admin-signin .ds-button {
-  font-family: var(--ds-arena-font-body);
-  font-size: var(--ds-arena-text-sm);
-  font-weight: 700;
-  letter-spacing: 0;
-  line-height: 1.25;
-  min-height: var(--ds-arena-control-min-height);
-  padding: var(--ds-arena-space-2) var(--ds-arena-space-4);
   white-space: normal;
   overflow-wrap: anywhere;
 }
-
-.admin-shell .ds-button--lg,
-.admin-signin .ds-button--lg { font-size: var(--ds-arena-text-md); }
 
 .admin-config .admin-config-add-button {
   flex: 0 0 auto;
@@ -140,32 +140,34 @@
 }
 
 .admin-page-head h1 {
-  font-family: var(--ds-arena-font-body);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  text-transform: none;
+  font-family: var(--ds-arena-font-display);
+  font-size: var(--ds-arena-text-display);
+  letter-spacing: 0;
+  text-transform: uppercase;
   margin: 0;
   color: var(--ds-arena-color-text);
 }
 
-.admin-shell .ds-card__title,
-.ds-card__title {
-  font-family: var(--ds-arena-font-body);
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
-  text-transform: none;
-  color: var(--ds-arena-color-text);
+.admin-page-head p {
+  margin-top: var(--ds-arena-space-1);
+  margin-bottom: 0;
+  margin-inline: 0;
+  color: var(--ds-arena-color-text-muted);
+  font-size: var(--ds-arena-text-sm);
 }
 
-.admin-page-head p {
-  margin: 4px 0 0;
-  color: var(--ds-arena-color-text-muted);
-  font-size: 14px;
+.admin-overview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-arena-space-4);
+  padding-block: var(--ds-arena-space-5);
+  border-bottom-width: var(--app-hairline);
+  border-bottom-style: solid;
+  border-bottom-color: var(--ds-arena-color-border);
 }
+
+.admin-overview-actions .ds-label { flex-basis: 100%; }
 
 .admin-toolbar {
   display: flex;

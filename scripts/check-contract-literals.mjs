@@ -380,7 +380,13 @@ export function listScannedFiles(
     for (const entry of entries) {
       const relativePath = `${relativeDir}/${entry.name}`;
       if (entry.isDirectory()) {
-        if (!SKIPPED_DIRECTORIES.has(entry.name)) pending.push(relativePath);
+        // Vendored design-system copies (src/design-system/<library>/) are
+        // library-owned UI code, not fact-lifecycle code; "active" there is a
+        // visual state, and the files cannot be edited locally.
+        const vendored =
+          normalizePath(relativeDir).endsWith("src/design-system") &&
+          /-[0-9a-f]{6}$/.test(entry.name);
+        if (!SKIPPED_DIRECTORIES.has(entry.name) && !vendored) pending.push(relativePath);
       } else if (SCANNED_EXTENSIONS.some((ext) => entry.name.endsWith(ext))) {
         const normalized = normalizePath(relativePath);
         if (normalized !== excluded) found.push(normalized);

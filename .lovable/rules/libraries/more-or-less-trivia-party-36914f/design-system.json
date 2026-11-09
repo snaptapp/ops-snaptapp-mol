@@ -1,0 +1,742 @@
+{
+  "meta": {
+    "name": "More Or Less Design System",
+    "package": "@ws-379cae16210c2fefdfa6/8806c3d0-8207-4d84-8d42-4534b6b552ef",
+    "version": "1.0.0",
+    "framework": "react",
+    "css_framework": "tailwind",
+    "starter_template": "custom_design_system_tailwind",
+    "theme_files": [
+      "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css",
+      "src/styles.css"
+    ],
+    "source_type": "local",
+    "source_manifest": {
+      "#enrichment": "fb891a1b2eeca89283e6a0ca8507ecb621dd61e0d8eb1dd1b82f9b95128d6791",
+      ".gitignore": "90929933d242e01ff18af40f618a037e",
+      ".lovable/plan/more-or-less-design-mockup-app-2026-08-30.md": "9e56cd43e0d4014f45b74cb143ce56b3",
+      "README.md": "d19675c449605f23c7cfa133c69b398b",
+      "bunfig.toml": "25f4c8696b22b0943db7191e0cdf7942",
+      "eslint.config.js": "07a67437fb1a45ab36d6de0145ff09de",
+      "flutter/arena_kit/README.md": "ad816044790551d91790f13ceab6b504",
+      "flutter/arena_kit/arena_badge.dart": "dfb9b5a2195d125580ab2550dcf166d5",
+      "flutter/arena_kit/arena_breakpoints.dart": "a3440c3dd65e62405eebfbab8270f476",
+      "flutter/arena_kit/arena_button.dart": "d727f49dec8595b2002acb0604fc8677",
+      "flutter/arena_kit/arena_card.dart": "8771834d21cb6d0bff3b1dbadd135642",
+      "flutter/arena_kit/arena_choice_buttons.dart": "1f9afa322499bf4c47288a3367c8af78",
+      "flutter/arena_kit/arena_empty_state.dart": "316e7af3c6cdf612e55fe1f1f2678d88",
+      "flutter/arena_kit/arena_kit.dart": "d45b740883b209281fad763c90da15c0",
+      "flutter/arena_kit/arena_progress_bar.dart": "dc4b63f16051af590411ec552ced9309",
+      "flutter/arena_kit/arena_section_header.dart": "54304c4e66499689e45e5eb8f779e6a0",
+      "flutter/arena_kit/arena_shot_clock.dart": "5f0e0a1f7bec09ad5dfe12ee68c552f3",
+      "flutter/arena_kit/arena_stat_tile.dart": "d58267f8f16728f0c3475fb0eb59c7a4",
+      "flutter/arena_kit/arena_tone.dart": "8b3bc8184973179b5710bcec55149398",
+      "lovable.toml": "d41d8cd98f00b204e9800998ecf8427e",
+      "mockupPreviewPlugin.ts": "08be2d15337c9b4145cc506cdf63a04e",
+      "package.json": "6110ae7101c87f01bc7fafdbd90315be",
+      "public/favicon.png": "232c2a3cdc0fb039bfd50158e7008b62",
+      "roadmap.md": "d2ed3b9dd125f2f326848adc478c0e67",
+      "src/assets/accent-burst.png": "66f9d8afb20abc6ec5b617fae781cea2",
+      "src/assets/backdrop-grid.jpg": "cb95911b318e8bc9dc0ce3da6e4ef0a5",
+      "src/assets/daily-deep-sea.jpg": "ee4fbc81cff704d1dc48524cc9a7fac5",
+      "src/assets/tier-emblem.png": "5e669254d5ec03ffb24b225bb64f1029",
+      "src/components/ArenaIcons.tsx": "905585a1fc04dc14a3e93c0bbf5d40d4",
+      "src/components/Bits.tsx": "02322014b712c36325fbff6bf0eb2f19",
+      "src/components/PhoneFrame.tsx": "374b6006844ef917a6576720beb127df",
+      "src/components/QaPanel.tsx": "8853347a77ef954621e39fca1f3ff4fa",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/AnswerButton.tsx": "8b99a549e40dee3055e32572ab0d63a6",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/Badge.tsx": "79094714fa58f28d5b2bc0b644994bd0",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/Button.tsx": "b1a88c16e9f64505d1faf9293a52335b",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/Card.tsx": "e33d4f2e1e5a0b463fae42d5d81a8d6f",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/CodeInput.tsx": "d760fb6ff10098a8eaf904e3e8fd6258",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/LeaderboardRow.tsx": "7c21d398bb0af1e3721e2ad0b445f80e",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/NavBar.tsx": "7145ddb8d7c1bdeef0c3d3c2a35d3a1a",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/ProgressBar.tsx": "2e51ac57b308b59f22d982d1f5680c7d",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/ResultBanner.tsx": "9545828b58f936b86c4052537ab3a01b",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/ShotClock.tsx": "f128af5d2726c0845f462b9a1d776686",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/StatValue.tsx": "2f40fab873abcf38b490a31be62fff44",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/TabBar.tsx": "0e3383dcbfc22384476d1e4e86cb2158",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/TierRow.tsx": "e025b4fadf1565ed019ba0b6cf2cab1d",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/components/TopicTile.tsx": "1cc7ef4da07b5bcaa7c8961985cf6f46",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/lib/cn.ts": "fc78b362de4bd6a608937c7f5dc4f505",
+      "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css": "75883e77e33139e642424c3115cbcad6",
+      "src/design-system/more-or-less-admin-site-72d612/index.ts": "7378401878653203a992a825c8ea26d3",
+      "src/lib/mock-data.ts": "9b9e49a3dbdda5549d5799055c53c991",
+      "src/lib/motion.ts": "ce58424b3055ca2886235a1409355d80",
+      "src/lib/use-simulated-loading.ts": "e4872c53ac7fcf38882d1a53018de9dd",
+      "src/mockup-preview.d.ts": "38969839f35ce2966e32a9f01a5c09ea",
+      "src/routeTree.gen.ts": "8ef1e6d15b4d1c1e792e075e2ad2cb52",
+      "src/router.tsx": "8f905e713b0eba7fa8148b7995a708c9",
+      "src/routes/[__component].preview.$.tsx": "3a40af1fe37daff2e891175a6e6d4f99",
+      "src/routes/[__mockup].preview.$.tsx": "5d9f42470848aa60148f20f9580e240e",
+      "src/routes/__root.tsx": "7cfa44a05feb55bdcfef0ad31ea96f95",
+      "src/routes/index.tsx": "375d7d2fb5558d01717a81eb51790043",
+      "src/routes/party.index.tsx": "ef7c9fecc1079dac18352c07af990dbf",
+      "src/routes/party.versus.tsx": "f067a0e248eff98791f17cd0fac768bd",
+      "src/routes/play.random.tsx": "8a386d29200b20042b262ed8154979a3",
+      "src/routes/play.standard.tsx": "8d742011c8f1a0a252d1f7e4710e5b7a",
+      "src/routes/profile.tsx": "746c5d244e05b5985a7ef8f10eb19e63",
+      "src/routes/round.tsx": "a1fd0d9f50e8e10d939a2b2220a8f081",
+      "src/routes/settings.tsx": "5ccc5f4b59601166702cd827cf051d26",
+      "src/routes/vault.tsx": "413c302a046c7362a74f71d7795b82de",
+      "src/styles.css": "c1e278bd9b63e829ea5e7bcfa0b44812",
+      "tsconfig.json": "994abf64c2b9f78b568879f80ed0170e",
+      "vite.config.ts": "9f787596cc6f9a2aa3de5a021aed28f3",
+      "wrangler.jsonc": "680b897d48e44bcc65fe437c29b38f3b"
+    },
+    "pipeline_version": 8
+  },
+  "tokens": {
+    "color": [
+      {
+        "name": "--ds-arena-color-bg",
+        "raw": "#0a0b0d",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-surface",
+        "raw": "#14161c",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-surface-raised",
+        "raw": "#1b1e26",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-surface-sunken",
+        "raw": "#0f1116",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-border",
+        "raw": "#262a34",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-border-strong",
+        "raw": "#3a4050",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-lime",
+        "raw": "#d7f24a",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-lime-dim",
+        "raw": "#8ea22c",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-lime-soft",
+        "raw": "rgba(215, 242, 74, 0.12)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-red",
+        "raw": "#f2495c",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-red-dim",
+        "raw": "#a3283a",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-red-soft",
+        "raw": "rgba(242, 73, 92, 0.12)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-purple",
+        "raw": "#a76cff",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-purple-dim",
+        "raw": "#6b3fb5",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-purple-soft",
+        "raw": "rgba(167, 108, 255, 0.14)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-amber",
+        "raw": "#f6c344",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-amber-dim",
+        "raw": "#a8842a",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-amber-soft",
+        "raw": "rgba(246, 195, 68, 0.12)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-primary-foreground",
+        "raw": "#0a0b0d",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-danger-foreground",
+        "raw": "#ffffff",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      }
+    ],
+    "spacing": [
+      {
+        "name": "--ds-arena-space-1",
+        "raw": "4px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-space-2",
+        "raw": "8px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-space-3",
+        "raw": "12px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-space-4",
+        "raw": "16px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-space-5",
+        "raw": "24px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-space-6",
+        "raw": "32px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-space-7",
+        "raw": "48px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      }
+    ],
+    "typography": [
+      {
+        "name": "--ds-arena-color-text",
+        "raw": "#f5f7fa",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-text-muted",
+        "raw": "#8d95a6",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-color-text-inverse",
+        "raw": "#0a0b0d",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-font-display",
+        "raw": "\"Anton\", \"Arial Narrow\", sans-serif",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-font-body",
+        "raw": "\"Inter\", system-ui, sans-serif",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-font-mono",
+        "raw": "\"JetBrains Mono\", ui-monospace, monospace",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-text-display",
+        "raw": "2.5rem",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-text-xl",
+        "raw": "1.5rem",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-text-lg",
+        "raw": "1.125rem",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-text-md",
+        "raw": "1rem",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-text-sm",
+        "raw": "0.875rem",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-text-xs",
+        "raw": "0.75rem",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      }
+    ],
+    "radius": [
+      {
+        "name": "--ds-arena-radius-sm",
+        "raw": "6px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-radius-md",
+        "raw": "10px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-radius-lg",
+        "raw": "14px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-radius-xl",
+        "raw": "20px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-radius-pill",
+        "raw": "999px",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      }
+    ],
+    "shadow": [
+      {
+        "name": "--ds-arena-shadow-press-lime",
+        "raw": "0 4px 0 var(--ds-arena-color-lime-dim)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-shadow-press-red",
+        "raw": "0 4px 0 var(--ds-arena-color-red-dim)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-shadow-press-purple",
+        "raw": "0 4px 0 var(--ds-arena-color-purple-dim)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-shadow-press-amber",
+        "raw": "0 4px 0 var(--ds-arena-color-amber-dim)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-shadow-glow-lime",
+        "raw": "0 0 24px rgba(215, 242, 74, 0.35)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-shadow-glow-purple",
+        "raw": "0 0 28px rgba(167, 108, 255, 0.35)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-shadow-card",
+        "raw": "0 2px 12px rgba(0, 0, 0, 0.5)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      }
+    ],
+    "other": [
+      {
+        "name": "--ds-arena-tracking-label",
+        "raw": "0.12em",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-duration-fast",
+        "raw": "90ms",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--ds-arena-ease-out",
+        "raw": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "source": "src/design-system/more-or-less-admin-site-72d612/design-system/theme/tokens.css"
+      },
+      {
+        "name": "--app-snap",
+        "raw": "180ms",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--app-settle",
+        "raw": "320ms",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--app-hairline",
+        "raw": "1px",
+        "source": "src/styles.css"
+      },
+      {
+        "name": "--app-hairline-strong",
+        "raw": "2px",
+        "source": "src/styles.css"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "AnswerButton",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/AnswerButton",
+      "import_path": "",
+      "props": [
+        {
+          "name": "choice",
+          "type": "enum",
+          "values": [
+            "more",
+            "less",
+            "skip"
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "Badge",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/Badge",
+      "import_path": "",
+      "props": [
+        {
+          "name": "tone",
+          "type": "enum",
+          "values": [
+            "neutral",
+            "lime",
+            "red",
+            "purple",
+            "amber"
+          ],
+          "default": "neutral"
+        }
+      ]
+    },
+    {
+      "name": "Button",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/Button",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "primary",
+            "danger",
+            "daily",
+            "skip",
+            "ghost"
+          ],
+          "default": "primary"
+        },
+        {
+          "name": "size",
+          "type": "enum",
+          "values": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "default": "md"
+        }
+      ]
+    },
+    {
+      "name": "Card",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/Card",
+      "import_path": "",
+      "props": [
+        {
+          "name": "variant",
+          "type": "enum",
+          "values": [
+            "default",
+            "featured",
+            "active",
+            "locked"
+          ],
+          "default": "default"
+        }
+      ]
+    },
+    {
+      "name": "CardLabel",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/Card",
+      "import_path": ""
+    },
+    {
+      "name": "CardTitle",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/Card",
+      "import_path": ""
+    },
+    {
+      "name": "CodeInput",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/CodeInput",
+      "import_path": "",
+      "props": [
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hideLabel",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "error",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "LeaderboardRow",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/LeaderboardRow",
+      "import_path": "",
+      "props": [
+        {
+          "name": "rank",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "score",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "NavBar",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/NavBar",
+      "import_path": "",
+      "props": [
+        {
+          "name": "title",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "leading",
+          "type": "any"
+        },
+        {
+          "name": "trailing",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "ProgressBar",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/ProgressBar",
+      "import_path": "",
+      "props": [
+        {
+          "name": "value",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": "100"
+        },
+        {
+          "name": "tone",
+          "type": "enum",
+          "values": [
+            "lime",
+            "red",
+            "purple"
+          ],
+          "default": "lime"
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ResultBanner",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/ResultBanner",
+      "import_path": "",
+      "props": [
+        {
+          "name": "outcome",
+          "type": "enum",
+          "values": [
+            "correct",
+            "wrong"
+          ],
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "ShotClock",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/ShotClock",
+      "import_path": "",
+      "props": [
+        {
+          "name": "remaining",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "total",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Shot clock"
+        }
+      ]
+    },
+    {
+      "name": "StatValue",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/StatValue",
+      "import_path": "",
+      "props": [
+        {
+          "name": "value",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "unit",
+          "type": "string"
+        },
+        {
+          "name": "tone",
+          "type": "enum",
+          "values": [
+            "correct",
+            "wrong"
+          ],
+          "default": "correct"
+        }
+      ]
+    },
+    {
+      "name": "TabBar",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/TabBar",
+      "import_path": "",
+      "props": [
+        {
+          "name": "items",
+          "type": "any",
+          "required": true
+        },
+        {
+          "name": "activeId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "onSelect",
+          "type": "function"
+        }
+      ]
+    },
+    {
+      "name": "TierRow",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/TierRow",
+      "import_path": "",
+      "props": [
+        {
+          "name": "eyebrow",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "state",
+          "type": "enum",
+          "values": [
+            "completed",
+            "active",
+            "locked"
+          ],
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "number",
+          "default": "0"
+        },
+        {
+          "name": "max",
+          "type": "number",
+          "default": "1"
+        },
+        {
+          "name": "action",
+          "type": "any"
+        }
+      ]
+    },
+    {
+      "name": "TopicTile",
+      "file": "src/design-system/more-or-less-admin-site-72d612/design-system/components/TopicTile",
+      "import_path": "",
+      "props": [
+        {
+          "name": "selected",
+          "type": "boolean",
+          "default": "false"
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "file": "src/assets/accent-burst.png",
+      "kind": "image",
+      "format": "png"
+    },
+    {
+      "file": "src/assets/backdrop-grid.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/daily-deep-sea.jpg",
+      "kind": "image",
+      "format": "jpg"
+    },
+    {
+      "file": "src/assets/tier-emblem.png",
+      "kind": "image",
+      "format": "png"
+    }
+  ]
+}
