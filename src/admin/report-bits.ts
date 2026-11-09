@@ -1,0 +1,34 @@
+import type { fetchReports } from "@/lib/admin/content.functions";
+import type { runReportCopilot } from "@/lib/admin/report-copilot.functions";
+
+export type Entry = Awaited<ReturnType<typeof fetchReports>>[number];
+
+/**
+ * Firestore revisions of the fact documents an admin reviewed, sent with the
+ * moderation action so the transaction can abort when any of them changed.
+ * Facts without a stored `updateTime` cannot be bound and are skipped.
+ */
+export function factRevisions(
+  facts: ReadonlyArray<{ id: string; updateTime?: string | null } | null | undefined>,
+): Array<{ id: string; updateTime: string }> {
+  const seen = new Map<string, string>();
+  for (const fact of facts) {
+    if (fact?.updateTime) seen.set(fact.id, fact.updateTime);
+  }
+  return [...seen.entries()].map(([id, updateTime]) => ({ id, updateTime }));
+}
+
+export type CopilotResult = Awaited<ReturnType<typeof runReportCopilot>>;
+
+export const COPILOT_VERDICTS: Record<CopilotResult["verdict"], { label: string; tone: "lime" | "red" | "amber" | "purple" | "neutral" }> = {
+  uphold_fact: { label: "Uphold fact", tone: "lime" },
+  fix_number: { label: "Fix number", tone: "amber" },
+  edit_fact: { label: "Edit fact", tone: "purple" },
+  retire_fact: { label: "Retire fact", tone: "red" },
+  resolve_duplicate: { label: "Resolve duplicate", tone: "amber" },
+  add_to_bank: { label: "Add to fact bank", tone: "purple" },
+  resolve_as_is: { label: "Accept as-is", tone: "lime" },
+  reject: { label: "Reject report", tone: "neutral" },
+  unclear: { label: "Unclear", tone: "neutral" },
+};
+
