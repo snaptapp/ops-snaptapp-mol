@@ -133,10 +133,22 @@ export function ReportCard({ entry }: { entry: Entry }) {
   });
   // Revisions of the facts as first rendered. Query refetches hand this card
   // new props under the same key, so the mutation must bind the versions the
-  // reviewer saw, not whatever the latest props happen to carry.
-  const [reviewedFacts] = useState(() =>
+  // reviewer saw, not whatever the latest props happen to carry. Candidates
+  // that appear later (a refetch adds a duplicate) are captured the first time
+  // they show up; factRevisions keeps the earliest revision per id.
+  const [trackedFacts, setTrackedFacts] = useState(() =>
     factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
   );
+  const newlySeenFacts = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]).filter(
+    (f) => !trackedFacts.some((t) => t.id === f.id),
+  );
+  const reviewedFacts =
+    newlySeenFacts.length > 0 ? [...trackedFacts, ...newlySeenFacts] : trackedFacts;
+  if (newlySeenFacts.length > 0) {
+    // Render-phase state update (React's derived-state pattern): record the
+    // first revision of each new candidate without an effect.
+    setTrackedFacts(reviewedFacts);
+  }
 
   const mutation = useMutation({
     mutationFn: (

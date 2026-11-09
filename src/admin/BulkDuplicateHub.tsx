@@ -103,14 +103,26 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
         ];
 
         const safety = isDuplicateDecisionSafe(review, allCandidates);
+        // The copilot may append server-side candidates (candidateFactIds) that
+        // are not in the snapshot. Refuse bulk apply when any resolution ID has
+        // no bound revision, because the transaction cannot check it.
+        const resolutionIds = [
+          review.duplicateResolution?.keepFactId,
+          ...(review.duplicateResolution?.retireFactIds ?? []),
+        ].filter((id): id is string => Boolean(id));
+        const unboundReasons = resolutionIds
+          .filter((id) => !expectedFacts.some((f) => f.id === id))
+          .map((id) => `Fact ${id} has no reviewed revision; cannot bind it to the resolution.`);
+        const reasons = [...safety.reasons, ...unboundReasons];
+        const safe = reasons.length === 0;
         newEvals[entry.report.id] = {
           review,
-          safe: safety.safe,
-          reasons: safety.reasons,
+          safe,
+          reasons,
           expectedFacts,
         };
 
-        if (safety.safe) {
+        if (safe) {
           newSelected.add(entry.report.id);
         }
       } catch (err) {
