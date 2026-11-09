@@ -137,6 +137,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
     context: entry.fact?.context || entry.report.explanation || "",
   });
   const [manualCandidate, setManualCandidate] = useState<NonNullable<Entry["fact"]> | null>(null);
+  const [manualCandidateId, setManualCandidateId] = useState("");
   // Revisions of the facts as first rendered. Query refetches hand this card
   // new props under the same key, so the mutation must bind the versions the
   // reviewer saw, not whatever the latest props happen to carry. Candidates
@@ -151,9 +152,11 @@ export function ReportCard({ entry }: { entry: Entry }) {
   let tracked = trackedFacts;
   if (resetAfterResolve) {
     const fresh = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
-    const unchanged =
-      fresh.length === trackedFacts.length &&
-      fresh.every((f) => trackedFacts.some((t) => t.id === f.id && t.updateTime === f.updateTime));
+    // Compare only the ids the props carry. A tracked manual candidate that is
+    // not listed must not trigger a reset before the refetch lands.
+    const unchanged = fresh.every((f) =>
+      trackedFacts.some((t) => t.id === f.id && t.updateTime === f.updateTime),
+    );
     if (!unchanged) {
       tracked = fresh;
       setTrackedFacts(fresh);
@@ -241,6 +244,8 @@ export function ReportCard({ entry }: { entry: Entry }) {
     },
     onSuccess: () => {
       setResetAfterResolve(true);
+      setManualCandidate(null);
+      setManualCandidateId("");
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["facts"] });
     },
@@ -254,7 +259,6 @@ export function ReportCard({ entry }: { entry: Entry }) {
     entry.report.reason?.toLowerCase().includes("conflicting_answer") ||
     Boolean(entry.fact?.quality_flags?.some(isDuplicateFlag));
 
-  const [manualCandidateId, setManualCandidateId] = useState("");
   const [manualLoading, setManualLoading] = useState(false);
   const [manualError, setManualError] = useState<string | null>(null);
   const fetchFactFn = useServerFn(fetchFact);

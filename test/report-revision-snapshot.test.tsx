@@ -17,7 +17,10 @@ const reactHarness = vi.hoisted(() => ({
 }));
 
 const serverHarness = vi.hoisted(() => ({
-  mutationOptions: [] as Array<{ mutationFn?: (params: unknown) => Promise<unknown> }>,
+  mutationOptions: [] as Array<{
+    mutationFn?: (params: unknown) => Promise<unknown>;
+    onSuccess?: () => void;
+  }>,
   actCalls: [] as Array<{ data: Record<string, unknown> }>,
   copilotCalls: [] as Array<{ data: Record<string, unknown> }>,
   copilotReview: null as null | Record<string, unknown>,
@@ -275,6 +278,34 @@ describe("trackFirstSeenRevisions", () => {
   it("returns the same array when nothing new is seen", () => {
     const tracked = factRevisions([{ id: "fact_a", updateTime: "rev-a1" }]);
     expect(trackFirstSeenRevisions(tracked, [{ id: "fact_a", updateTime: "rev-a2" }])).toBe(tracked);
+  });
+});
+
+describe("ReportCard post-resolution refresh", () => {
+  it("waits for the refetch, then reviews the refreshed duplicate revision", async () => {
+    const oldEntry = makeEntry({ fact: REV_OLD_FACT, dup: REV_OLD_DUP });
+    // The resolution changes the duplicate's revision; the reported fact does not.
+    const refreshedEntry = makeEntry({ fact: REV_OLD_FACT, dup: REV_NEW_DUP });
+
+    invoke(ReportCard, { entry: oldEntry });
+    serverHarness.mutationOptions.at(-1)?.onSuccess?.();
+
+    // Stale props before the refetch: keep the revisions the reviewer saw.
+    invoke(ReportCard, { entry: oldEntry });
+    const mutationFn = serverHarness.mutationOptions.at(-1)?.mutationFn;
+    await mutationFn!({ action: "fix_number", correctedNumber: 65 });
+    expect(serverHarness.actCalls.at(-1)?.data["expectedFacts"]).toEqual([
+      { id: "fact_a", updateTime: REV_OLD_FACT },
+      { id: "fact_b", updateTime: REV_OLD_DUP },
+    ]);
+
+    // Refetch lands with the new duplicate revision: review starts from it.
+    invoke(ReportCard, { entry: refreshedEntry });
+    await serverHarness.mutationOptions.at(-1)?.mutationFn!({ action: "fix_number", correctedNumber: 65 });
+    expect(serverHarness.actCalls.at(-1)?.data["expectedFacts"]).toEqual([
+      { id: "fact_a", updateTime: REV_OLD_FACT },
+      { id: "fact_b", updateTime: REV_NEW_DUP },
+    ]);
   });
 });
 

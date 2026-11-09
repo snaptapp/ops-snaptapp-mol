@@ -18,6 +18,7 @@ import {
   moderationQueue,
   ModerationRequestError,
   recommendModerationAction,
+  unboundDuplicateResolutionIds,
 } from "@/lib/admin/ops-moderation.server";
 
 const FACT = {
@@ -186,5 +187,33 @@ describe("ops moderation queue", () => {
     );
     expect(recommendation.apply).toBe(false);
     expect(recommendation.action).toBeNull();
+  });
+});
+
+describe("duplicate resolution revision guard", () => {
+  it("reports keep and retire IDs that have no supplied revision", () => {
+    expect(
+      unboundDuplicateResolutionIds(
+        { keepFactId: "f_keep", retireFactIds: ["f_lose", "f_other"] },
+        [{ id: "f_keep" }, { id: "f_lose" }],
+      ),
+    ).toEqual(["f_other"]);
+  });
+
+  it("passes when every keep and retire ID is bound", () => {
+    expect(
+      unboundDuplicateResolutionIds({ keepFactId: "f_keep", retireFactIds: ["f_lose"] }, [
+        { id: "f_keep" },
+        { id: "f_lose" },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("does not let an unrelated supplied revision cover a retired ID", () => {
+    expect(
+      unboundDuplicateResolutionIds({ keepFactId: "f_keep", retireFactIds: ["f_lose"] }, [
+        { id: "f_keep" },
+      ]),
+    ).toEqual(["f_lose"]);
   });
 });

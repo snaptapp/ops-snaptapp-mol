@@ -367,6 +367,22 @@ function cleanUpdates(updates: ModerationFactUpdates | undefined): ModerationFac
   return next;
 }
 
+/**
+ * Keep and retire IDs of a duplicate resolution that the caller did not bind to
+ * a reviewed revision. Only supplied revisions count: facts read fresh at action
+ * time would let an omitted ID skip the copilot-time check.
+ */
+export function unboundDuplicateResolutionIds(
+  button: { keepFactId?: string | null; retireFactIds?: readonly string[] | null },
+  expectedFacts: ReadonlyArray<{ id: string }> = [],
+): string[] {
+  const supplied = new Set(expectedFacts.map((f) => f.id));
+  const touched = [button.keepFactId, ...(button.retireFactIds ?? [])].filter(
+    (id): id is string => Boolean(id),
+  );
+  return touched.filter((id) => !supplied.has(id));
+}
+
 /** Press one inbox button for a pending report. */
 export async function moderationAct(input: ModerationActInput, actor: AdminUser = OPS_ACTOR): Promise<{ ok: true; reportId: string; action: ModerationAction }> {
   const reportId = input.reportId.trim();
@@ -378,13 +394,7 @@ export async function moderationAct(input: ModerationActInput, actor: AdminUser 
   const item = await loadPendingItem(reportId);
   const button = buttonForAction(item, input);
   if (input.action === "resolve_duplicate") {
-    // Only revisions the caller supplied (from the copilot review) count here.
-    // Facts read fresh at action time would let an omitted ID skip the check.
-    const supplied = new Set((input.expectedFacts ?? []).map((f) => f.id));
-    const touched = [button.keepFactId, ...(button.retireFactIds ?? [])].filter(
-      (id): id is string => Boolean(id),
-    );
-    const unbound = touched.filter((id) => !supplied.has(id));
+    const unbound = unboundDuplicateResolutionIds(button, input.expectedFacts);
     if (unbound.length > 0) {
       throw new ModerationRequestError(
         `expectedFacts must include the reviewed revision for ${unbound.join(", ")}.`,
