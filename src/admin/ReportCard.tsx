@@ -131,6 +131,12 @@ export function ReportCard({ entry }: { entry: Entry }) {
     surprise_factor: entry.fact?.surprise_factor ?? 2,
     context: entry.fact?.context || entry.report.explanation || "",
   });
+  // Revisions of the facts as first rendered. Query refetches hand this card
+  // new props under the same key, so the mutation must bind the versions the
+  // reviewer saw, not whatever the latest props happen to carry.
+  const [reviewedFacts] = useState(() =>
+    factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
+  );
 
   const mutation = useMutation({
     mutationFn: (
@@ -192,6 +198,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
           retireFactId: isObj ? params.retireFactId : undefined,
           retireFactIds: isObj ? params.retireFactIds : undefined,
           expectedFacts: factRevisions([
+            ...reviewedFacts,
             entry.fact,
             ...(entry.duplicateFacts ?? []),
             manualCandidate,

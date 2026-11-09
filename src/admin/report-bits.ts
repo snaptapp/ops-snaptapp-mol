@@ -6,14 +6,19 @@ export type Entry = Awaited<ReturnType<typeof fetchReports>>[number];
 /**
  * Firestore revisions of the fact documents an admin reviewed, sent with the
  * moderation action so the transaction can abort when any of them changed.
- * Facts without a stored `updateTime` cannot be bound and are skipped.
+ * Facts without a stored `updateTime` cannot be bound and are skipped. The
+ * first non-empty revision per fact id wins: callers prepend the revisions
+ * captured at review time so refreshed props or a manual lookup cannot
+ * overwrite the version the reviewer actually saw.
  */
 export function factRevisions(
   facts: ReadonlyArray<{ id: string; updateTime?: string | null } | null | undefined>,
 ): Array<{ id: string; updateTime: string }> {
   const seen = new Map<string, string>();
   for (const fact of facts) {
-    if (fact?.updateTime) seen.set(fact.id, fact.updateTime);
+    if (fact?.updateTime && !seen.has(fact.id)) {
+      seen.set(fact.id, fact.updateTime);
+    }
   }
   return [...seen.entries()].map(([id, updateTime]) => ({ id, updateTime }));
 }

@@ -21,6 +21,8 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
         review: CopilotResult;
         safe: boolean;
         reasons: string[];
+        /** Revisions of the facts as they were when the copilot evaluated them. */
+        expectedFacts: Array<{ id: string; updateTime: string }>;
       }
     >
   >({});
@@ -51,6 +53,10 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
           ...(entry.duplicateFacts?.map((d) => d.id) ?? []),
           ...(entry.report.duplicateFactIds ?? []),
         ].filter(Boolean);
+
+        // Bind the revisions the reviewer is about to see before the copilot
+        // await; a refetch mid-evaluation must not rebind the review.
+        const expectedFacts = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
 
         const review = await runCopilot({
           data: {
@@ -101,6 +107,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
           review,
           safe: safety.safe,
           reasons: safety.reasons,
+          expectedFacts,
         };
 
         if (safety.safe) {
@@ -160,7 +167,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
       const entry = toApply[i];
       setApplyProgress({ current: i + 1, total });
       const ev = evaluations[entry.report.id];
-      if (!ev?.review?.duplicateResolution) continue;
+      if (!ev?.review?.duplicateResolution || !ev.expectedFacts) continue;
 
       const dup = ev.review.duplicateResolution;
       try {
@@ -171,7 +178,11 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
             keepFactId: dup.keepFactId ?? undefined,
             retireFactIds: dup.retireFactIds,
             correctedNumber: ev.review.suggested?.true_number,
-            expectedFacts: factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
+            expectedFacts: factRevisions([
+              ...ev.expectedFacts,
+              entry.fact,
+              ...(entry.duplicateFacts ?? []),
+            ]),
             note: dup.reason,
             copilot: {
               verdict: ev.review.verdict,

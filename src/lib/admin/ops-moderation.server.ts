@@ -543,10 +543,17 @@ export async function moderationCopilot(reportId: string, actor: AdminUser = OPS
   review: CopilotReview;
   buttons: ModerationButton[];
   recommendation: ModerationRecommendation;
+  /**
+   * Firestore revisions of the facts shown to the reviewer, captured before
+   * the copilot await so a concurrent fact write cannot slip an auto-action
+   * past the transaction guard.
+   */
+  expectedFacts: Array<{ id: string; updateTime: string }>;
 }> {
   const id = reportId.trim();
   if (!id) throw new ModerationRequestError("reportId is required.", 400);
   const item = await loadPendingItem(id);
+  const expectedFacts = reviewedFactRevisions(item);
   const { reviewReportWithCopilot } = await import("./report-copilot.server");
   const review = await reviewReportWithCopilot({
     topic: item.report.topic,
@@ -604,5 +611,5 @@ export async function moderationCopilot(reportId: string, actor: AdminUser = OPS
       recommendation,
     },
   });
-  return { reportId: id, review, buttons: item.buttons, recommendation };
+  return { reportId: id, review, buttons: item.buttons, recommendation, expectedFacts };
 }

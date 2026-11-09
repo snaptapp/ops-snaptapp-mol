@@ -9,12 +9,11 @@
  * or unverifiable upstream handoff fails the build before deploy.
  *
  * The check needs read access to the private upstream repository. It runs
- * when SHARED_ARTIFACT_PAT or GITHUB_TOKEN is present in the build
+ * with SHARED_ARTIFACT_PAT, GITHUB_TOKEN, or GH_TOKEN in the build
  * environment (the scheduled freshness workflow uses the same secret name).
  * Workers Builds clones only this repository, so provision
- * SHARED_ARTIFACT_PAT in the Workers Builds environment to activate the hard
- * gate. Without credentials the deploy proceeds with a loud warning rather
- * than silently skipping verification.
+ * SHARED_ARTIFACT_PAT in the Workers Builds environment. Without credentials
+ * the build fails closed. Use build:dev for an offline local build instead.
  */
 
 import { spawnSync } from "node:child_process";
@@ -29,11 +28,11 @@ const hasToken = Boolean(
 
 if (!hasToken) {
   process.stderr.write(
-    "predeploy-freshness: upstream freshness not verified: no SHARED_ARTIFACT_PAT or " +
-      "GITHUB_TOKEN in the build environment. Provision SHARED_ARTIFACT_PAT to enforce " +
-      "freshness before deploy.\n",
+    "predeploy-freshness: refusing deploy because upstream freshness cannot be verified: " +
+      "no SHARED_ARTIFACT_PAT, GITHUB_TOKEN, or GH_TOKEN in the build environment. " +
+      "Provision SHARED_ARTIFACT_PAT, or use build:dev for an offline local build.\n",
   );
-  process.exit(0);
+  process.exit(1);
 }
 
 const result = spawnSync(
