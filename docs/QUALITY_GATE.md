@@ -41,6 +41,15 @@ does not perform network I/O.
   check:artifact-freshness`). It compares the adopted source commit and manifest
   authority with the Main repository and detects changes that have not yet been
   published/adopted. It is intentionally not part of the network-free build gate.
+- `npm run build` runs `scripts/predeploy-freshness.mjs` between the gate and
+  the Vite build, so the deploy command enforces freshness whenever upstream
+  credentials exist. The wrapper delegates to `check:artifact-freshness` when
+  `SHARED_ARTIFACT_PAT`, `GITHUB_TOKEN`, or `GH_TOKEN` is present and fails the
+  build on a stale handoff. Without credentials it warns and proceeds; provision
+  `SHARED_ARTIFACT_PAT` (the same secret the scheduled freshness workflow uses)
+  in the Workers Builds environment to make freshness a hard pre-deploy gate.
+  The scheduled `shared-artifact-freshness` workflow remains the standing
+  observation layer.
 - The DDM-4 kernel remains the production authority. A stored Firestore block is
   untrusted input: the adapter and caller re-gate it under the current vendored
   kernel and fall back or abstain rather than trusting stale fields.

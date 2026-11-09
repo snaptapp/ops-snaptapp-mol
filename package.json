@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite dev",
     "gate": "node scripts/quality-gate.mjs",
-    "build": "node scripts/quality-gate.mjs && vite build",
+    "build": "node scripts/quality-gate.mjs && node scripts/predeploy-freshness.mjs && vite build",
     "build:dev": "node scripts/quality-gate.mjs && vite build --mode development",
     "preview": "vite preview",
     "deploy": "npm run build && wrangler deploy",

@@ -297,10 +297,13 @@ describe("Requirement 7.8: Lint_Step exits 0 on warnings-only and non-zero on an
 // ===========================================================================
 
 describe("Requirement 7.1: Build_Script invokes Vite only if the gate exits 0", () => {
-  it("sequences the gate before Vite with && so Vite runs only on gate success", () => {
-    // The && operator is exactly what makes `vite build` conditional on the
-    // gate's exit code: a non-zero gate exit short-circuits the sequence.
-    expect(scripts["build"]).toBe("node scripts/quality-gate.mjs && vite build");
+  it("sequences the gate and freshness check before Vite with && so Vite runs only on success", () => {
+    // The && operator is exactly what makes `vite build` conditional on each
+    // preceding exit code: a non-zero gate or freshness exit short-circuits
+    // the sequence before any build output is written.
+    expect(scripts["build"]).toBe(
+      "node scripts/quality-gate.mjs && node scripts/predeploy-freshness.mjs && vite build",
+    );
   });
 
   it("does not run Vite when a gate member fails (the gate exits non-zero)", () => {

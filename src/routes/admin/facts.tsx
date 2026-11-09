@@ -2315,7 +2315,7 @@ function ContentPage() {
             </div>
             {query.data?.windowed ? (
               <p style={{ color: "var(--ds-arena-color-text-muted)", fontSize: 13 }}>
-                Showing the first 1,000 matching documents — narrow the filters for full coverage.
+                Result scan limit reached. Narrow the filters for full coverage.
               </p>
             ) : null}
           </>

@@ -473,14 +473,11 @@ async function applyTaxonomyFilters(
   return next;
 }
 
-/**
- * Firestore has no substring index, so filters that map to indexed equality
- * run server-side and the free-text search is applied to that result window.
- */
-export async function listFacts(input: FactListInput) {
-  const pageSize = Math.min(input.pageSize ?? 25, 1000);
-  const page = Math.max(input.page ?? 1, 1);
+const FACT_SCAN_BATCH = 1000;
+const FACT_SCAN_LIMIT = 10_000;
 
+/** Structured equality filters Firestore can evaluate server-side. */
+function factQueryFilters(input: FactListInput): QueryFilter[] {
   const filters: QueryFilter[] = [];
   if (input.status) filters.push({ field: "status", op: "EQUAL", value: input.status });
   if (input.contentRating) {
@@ -489,80 +486,51 @@ export async function listFacts(input: FactListInput) {
   if (input.difficulty) {
     filters.push({ field: "difficulty_hint", op: "EQUAL", value: input.difficulty });
   }
-
-  const window = await runQuery({
-    collection: "fact_bank",
-    filters,
-    limit: 1000,
-  });
-
-  let facts = window.map(toFact);
-  facts = await applyTaxonomyFilters(facts, input);
-  if (input.subject?.trim()) {
-    const sub = input.subject.trim().toLowerCase();
-    facts = facts.filter((f) => f.subject.toLowerCase().includes(sub));
-  }
-  if (input.angle?.trim()) {
-    const ang = input.angle.trim().toLowerCase();
-    facts = facts.filter((f) => (f.angle || "").toLowerCase().includes(ang));
-  }
-  if (input.surpriseFactor !== undefined) {
-    facts = facts.filter((f) => (f.surprise_factor ?? 2) === input.surpriseFactor);
-  }
-  if (input.minSurprise !== undefined) {
-    facts = facts.filter((fact) => (fact.surprise_factor ?? 0) >= input.minSurprise!);
-  }
-  const term = input.search?.trim().toLowerCase();
-  if (term) {
-    facts = facts.filter((fact) => factSearchText(fact).includes(term));
-  }
-
-  const sortField = input.sortField || "subject";
-  const sortDir = input.sortOrder === "desc" ? -1 : 1;
-  facts.sort((a, b) => {
-    let diff = 0;
-    if (sortField === "subject") {
-      diff = a.subject.localeCompare(b.subject) || a.angle.localeCompare(b.angle);
-    } else if (sortField === "angle") {
-      diff = a.angle.localeCompare(b.angle) || a.subject.localeCompare(b.subject);
-    } else if (sortField === "true_number") {
-      diff = (a.true_number ?? 0) - (b.true_number ?? 0);
-    } else if (sortField === "surprise_factor") {
-      diff = (a.surprise_factor ?? 2) - (b.surprise_factor ?? 2);
-    } else if (sortField === "served_count") {
-      diff = a.served_count - b.served_count;
-    }
-    return diff * sortDir;
-  });
-
-  const total = facts.length;
-  const start = (page - 1) * pageSize;
-  return {
-    facts: facts.slice(start, start + pageSize),
-    total,
-    page,
-    pageSize,
-    windowed: window.length >= 1000,
-  };
+  return filters;
 }
 
-export async function exportFacts(input: FactListInput): Promise<FactRecord[]> {
-  const filters: QueryFilter[] = [];
-  if (input.status) filters.push({ field: "status", op: "EQUAL", value: input.status });
-  if (input.contentRating) {
-    filters.push({ field: "content_rating", op: "EQUAL", value: input.contentRating });
+/**
+ * Firestore has no substring index, so taxonomy, free-text, and surprise
+ * filters run in memory over every server-matched document. The scan pages
+ * through `fact_bank` in batches so listings and exports cover the full match
+ * set up to FACT_SCAN_LIMIT instead of silently stopping at the first 1,000
+ * documents. `truncated` reports that more matches may exist beyond the cap.
+ */
+async function collectFactScan(
+  input: FactListInput,
+): Promise<{ docs: FirestoreDoc[]; truncated: boolean }> {
+  const filters = factQueryFilters(input);
+  const docs: FirestoreDoc[] = [];
+  for (;;) {
+    const batch = await runQuery({
+      collection: "fact_bank",
+      filters,
+      limit: FACT_SCAN_BATCH,
+      offset: docs.length,
+    });
+    docs.push(...batch);
+    if (batch.length < FACT_SCAN_BATCH) return { docs, truncated: false };
+    if (docs.length >= FACT_SCAN_LIMIT) {
+      // A full batch at the cap is ambiguous: probe once so an exact-boundary
+      // result set is not reported as truncated.
+      const probe = await runQuery({
+        collection: "fact_bank",
+        filters,
+        limit: 1,
+        offset: docs.length,
+      });
+      return { docs, truncated: probe.length > 0 };
+    }
   }
-  if (input.difficulty) {
-    filters.push({ field: "difficulty_hint", op: "EQUAL", value: input.difficulty });
-  }
+}
 
-  const window = await runQuery({
-    collection: "fact_bank",
-    filters,
-    limit: 1000,
-  });
-
-  let facts = window.map(toFact);
+/** Applies the in-memory taxonomy, text, surprise, and sort pipeline shared by
+ * the paginated listing and the complete export. */
+async function filterAndSortFacts(
+  docs: FirestoreDoc[],
+  input: FactListInput,
+): Promise<FactRecord[]> {
+  let facts = docs.map(toFact);
   facts = await applyTaxonomyFilters(facts, input);
   if (input.subject?.trim()) {
     const sub = input.subject.trim().toLowerCase();
@@ -601,6 +569,39 @@ export async function exportFacts(input: FactListInput): Promise<FactRecord[]> {
     return diff * sortDir;
   });
   return facts;
+}
+
+export async function listFacts(input: FactListInput) {
+  const pageSize = Math.min(input.pageSize ?? 25, 1000);
+  const page = Math.max(input.page ?? 1, 1);
+
+  const { docs, truncated } = await collectFactScan(input);
+  const facts = await filterAndSortFacts(docs, input);
+
+  const total = facts.length;
+  const start = (page - 1) * pageSize;
+  return {
+    facts: facts.slice(start, start + pageSize),
+    total,
+    page,
+    pageSize,
+    windowed: truncated,
+  };
+}
+
+/**
+ * Complete export: returns every fact matching the filters or fails loudly.
+ * A partial export is never returned, so CSV consumers cannot silently drop
+ * records beyond the scan cap.
+ */
+export async function exportFacts(input: FactListInput): Promise<FactRecord[]> {
+  const { docs, truncated } = await collectFactScan(input);
+  if (truncated) {
+    throw new Error(
+      `exportFacts: fact_bank matches exceed the ${FACT_SCAN_LIMIT}-document scan limit; narrow the filters and retry.`,
+    );
+  }
+  return filterAndSortFacts(docs, input);
 }
 
 export interface ImportFactInput {

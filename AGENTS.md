@@ -4,7 +4,7 @@
 
 ## Critical Invariants
 
-1. **Deploy:** `main` auto-deploys via Workers Builds (`npm run build` → `wrangler deploy`); the build runs the quality gate. Never bypass a failed gate.
+1. **Deploy:** `main` auto-deploys via Workers Builds (`npm run build` → `wrangler deploy`); the build runs the quality gate plus a credential-gated upstream freshness check (`SHARED_ARTIFACT_PAT`/`GITHUB_TOKEN`/`GH_TOKEN`; warns and proceeds without them). Never bypass a failed gate.
 2. **Packages:** npm only, pinned `npm@10.9.8`; `npm ci`, `package-lock.json` only. `.npmrc` needs `ignore-scripts=false`.
 3. **Typecheck:** TypeScript 7 (`typescript7`) for checking; TypeScript 5 for ESLint/AST until tooling converges.
 4. **Secrets:** Service account JSON belongs in Worker secrets, never `wrangler.jsonc`; `FIREBASE_WEB_API_KEY` is publishable. `OPS_ASSISTANT_SECRET` belongs on the live ops Worker `more-or-less-ops` and on the Notion factbank worker, as the same value. Set Notion worker env once with `ntn workers env set`; later `ntn workers deploy` keeps it. Do not print the secret, commit it, reuse `OPS_CRON_SECRET`, or set `OPS_ASSISTANT_ALLOW_CRON_FALLBACK` in production.
@@ -26,7 +26,7 @@
 ```sh
 npm ci && npm run dev             # Local dev (cp .env.example .env first)
 npm run gate                      # Run Quality_Gate alone (pre-push check)
-npm run build                     # Quality_Gate + vite build (Workers Builds command)
+npm run build                     # Quality_Gate + freshness check + vite build (Workers Builds command)
 npm run deploy                    # Manual production deploy (build -> wrangler deploy)
 ```
 

@@ -632,7 +632,7 @@ if (isDirectInvocation()) {
     ref: options.ref,
     apiBase: options.apiBase,
     upstreamRoot: options.upstreamRoot,
-    token: process.env.GITHUB_TOKEN,
+    token: process.env.GITHUB_TOKEN || process.env.SHARED_ARTIFACT_PAT || process.env.GH_TOKEN,
   });
   for (const line of outcome.stdout) process.stdout.write(`${line}\n`);
   for (const line of outcome.stderr) process.stderr.write(`${line}\n`);
