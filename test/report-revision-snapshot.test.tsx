@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { factRevisions, trackFirstSeenRevisions } from "@/admin/report-bits";
 import { ReportCard } from "@/admin/ReportCard";
 import { BulkDuplicateHub } from "@/admin/BulkDuplicateHub";
+import { fetchFact } from "@/lib/admin/content.functions";
 
 // Persistent hook slots let direct component invocations behave like repeated
 // renders of the same mounted instance: useState initializers run once and
@@ -220,6 +221,16 @@ function findClickHandler(root: ReactNode, labelMatch: RegExp): (() => unknown) 
   return undefined;
 }
 
+function findInputChange(root: ReactNode, placeholderMatch: RegExp): ((event: unknown) => unknown) | undefined {
+  for (const element of walkElements(root)) {
+    const props = element["props"] as { onChange?: unknown; placeholder?: unknown };
+    if (typeof props.onChange === "function" && placeholderMatch.test(String(props.placeholder ?? ""))) {
+      return props.onChange as (event: unknown) => unknown;
+    }
+  }
+  return undefined;
+}
+
 function invoke<P>(component: (props: P) => ReactElement | null, props: P): ReactElement | null {
   reactHarness.resetCursor();
   return component(props);
@@ -282,6 +293,40 @@ describe("trackFirstSeenRevisions", () => {
 });
 
 describe("ReportCard post-resolution refresh", () => {
+  it("keeps a manual candidate out of the second-stage payload once the refetch lands", async () => {
+    // No listed duplicates, so the manual lookup section is shown.
+    const oldEntry = { ...makeEntry({ fact: REV_OLD_FACT, dup: REV_OLD_DUP }), duplicateFacts: [] };
+    const refreshedEntry = { ...makeEntry({ fact: REV_NEW_FACT, dup: REV_NEW_DUP }), duplicateFacts: [] };
+    const REV_MANUAL = "2026-01-01T00:00:02.000Z";
+    vi.mocked(fetchFact).mockResolvedValueOnce({ id: "fact_c", updateTime: REV_MANUAL } as never);
+
+    // Admin looks up a manual candidate, then the resolution succeeds.
+    invoke(ReportCard, { entry: oldEntry });
+    findInputChange(invoke(ReportCard, { entry: oldEntry }), /Candidate Fact ID/)?.({
+      target: { value: "fact_c" },
+    });
+    const load = findClickHandler(invoke(ReportCard, { entry: oldEntry }), /Load Fact to Compare/);
+    expect(load).toBeDefined();
+    await load!();
+    invoke(ReportCard, { entry: oldEntry });
+    serverHarness.mutationOptions.at(-1)?.onSuccess?.();
+
+    // Stale props before the refetch: the reviewed revisions stay in place.
+    invoke(ReportCard, { entry: oldEntry });
+    await serverHarness.mutationOptions.at(-1)?.mutationFn!({ action: "fix_number", correctedNumber: 65 });
+    expect(serverHarness.actCalls.at(-1)?.data["expectedFacts"]).toEqual([
+      { id: "fact_a", updateTime: REV_OLD_FACT },
+      { id: "fact_c", updateTime: REV_MANUAL },
+    ]);
+
+    // Refetch lands: the second-stage payload uses only the refreshed facts.
+    invoke(ReportCard, { entry: refreshedEntry });
+    await serverHarness.mutationOptions.at(-1)?.mutationFn!({ action: "fix_number", correctedNumber: 65 });
+    expect(serverHarness.actCalls.at(-1)?.data["expectedFacts"]).toEqual([
+      { id: "fact_a", updateTime: REV_NEW_FACT },
+    ]);
+  });
+
   it("waits for the refetch, then reviews the refreshed duplicate revision", async () => {
     const oldEntry = makeEntry({ fact: REV_OLD_FACT, dup: REV_OLD_DUP });
     // The resolution changes the duplicate's revision; the reported fact does not.
