@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { factRevisions, trackFirstSeenRevisions } from "@/admin/report-bits";
 import { ReportCard } from "@/admin/ReportCard";
 import { BulkDuplicateHub } from "@/admin/BulkDuplicateHub";
-import { fetchFact } from "@/lib/admin/content.functions";
+import { actOnReport, fetchFact } from "@/lib/admin/content.functions";
 
 // Persistent hook slots let direct component invocations behave like repeated
 // renders of the same mounted instance: useState initializers run once and
@@ -308,6 +308,7 @@ describe("ReportCard post-resolution refresh", () => {
     const load = findClickHandler(invoke(ReportCard, { entry: oldEntry }), /Load Fact to Compare/);
     expect(load).toBeDefined();
     await load!();
+    expect(fetchFact).toHaveBeenCalledWith({ data: { id: "fact_c" } });
     invoke(ReportCard, { entry: oldEntry });
     serverHarness.mutationOptions.at(-1)?.onSuccess?.();
 
@@ -375,6 +376,18 @@ describe("ReportCard revision snapshot", () => {
 });
 
 describe("BulkDuplicateHub revision snapshot", () => {
+  it("drops the evaluation of a failed apply so the entry can be re-evaluated", async () => {
+    const entry = makeEntry({ fact: REV_OLD_FACT, dup: REV_OLD_DUP });
+    await findClickHandler(invoke(BulkDuplicateHub, { entries: [entry] }), /Evaluate All Duplicates/)!();
+    // Evaluated: nothing left to evaluate.
+    expect(findClickHandler(invoke(BulkDuplicateHub, { entries: [entry] }), /Evaluate All Duplicates/)).toBeUndefined();
+
+    vi.mocked(actOnReport).mockRejectedValueOnce(new Error("Fact changed since review; no changes were made."));
+    await findClickHandler(invoke(BulkDuplicateHub, { entries: [entry] }), /Bulk Apply/)!();
+
+    expect(findClickHandler(invoke(BulkDuplicateHub, { entries: [entry] }), /Evaluate All Duplicates/)).toBeDefined();
+  });
+
   it("applies the evaluation-time revisions after props refresh", async () => {
     const oldEntry = makeEntry({ fact: REV_OLD_FACT, dup: REV_OLD_DUP });
     const newEntry = makeEntry({ fact: REV_NEW_FACT, dup: REV_NEW_DUP });

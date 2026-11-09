@@ -177,6 +177,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
     setIsApplying(true);
     setApplyResult(null);
     let successCount = 0;
+    const failedIds = new Set<string>();
     const toApply = entries.filter((e) => selectedIds.has(e.report.id));
     const total = toApply.length;
     setApplyProgress({ current: 0, total });
@@ -214,7 +215,17 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
         successCount++;
       } catch (err) {
         console.error(`Failed to apply duplicate resolution for ${entry.report.id}:`, err);
+        failedIds.add(entry.report.id);
       }
+    }
+
+    // A failed apply (for example "Fact changed since review") leaves a stale
+    // evaluation behind. Drop it so the entry counts as unevaluated and can be
+    // re-evaluated against the current facts.
+    if (failedIds.size > 0) {
+      setEvaluations((prev) =>
+        Object.fromEntries(Object.entries(prev).filter(([id]) => !failedIds.has(id))),
+      );
     }
 
     setIsApplying(false);

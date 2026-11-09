@@ -1196,7 +1196,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
                 setManualLoading(true);
                 setManualError(null);
                 try {
-                  const res = await fetchFactFn({ data: { factId: id } });
+                  const res = await fetchFactFn({ data: { id } });
                   if (res) {
                     setManualCandidate(res as NonNullable<Entry["fact"]>);
                   } else {
