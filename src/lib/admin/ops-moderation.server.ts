@@ -377,6 +377,21 @@ export async function moderationAct(input: ModerationActInput, actor: AdminUser 
 
   const item = await loadPendingItem(reportId);
   const button = buttonForAction(item, input);
+  if (input.action === "resolve_duplicate") {
+    // Only revisions the caller supplied (from the copilot review) count here.
+    // Facts read fresh at action time would let an omitted ID skip the check.
+    const supplied = new Set((input.expectedFacts ?? []).map((f) => f.id));
+    const touched = [button.keepFactId, ...(button.retireFactIds ?? [])].filter(
+      (id): id is string => Boolean(id),
+    );
+    const unbound = touched.filter((id) => !supplied.has(id));
+    if (unbound.length > 0) {
+      throw new ModerationRequestError(
+        `expectedFacts must include the reviewed revision for ${unbound.join(", ")}.`,
+        400,
+      );
+    }
+  }
   const note = input.note?.trim()
     ? `${input.note.trim()} | via Ops Assistant`
     : "via Ops Assistant";

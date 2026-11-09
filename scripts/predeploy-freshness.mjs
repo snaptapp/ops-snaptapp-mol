@@ -22,8 +22,8 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-const hasToken = Boolean(
-  process.env.SHARED_ARTIFACT_PAT || process.env.GITHUB_TOKEN || process.env.GH_TOKEN,
+const hasToken = [process.env.SHARED_ARTIFACT_PAT, process.env.GITHUB_TOKEN, process.env.GH_TOKEN].some(
+  (value) => Boolean(value?.trim()),
 );
 
 if (!hasToken) {

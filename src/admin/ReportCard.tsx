@@ -145,12 +145,27 @@ export function ReportCard({ entry }: { entry: Entry }) {
   const [trackedFacts, setTrackedFacts] = useState(() =>
     factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
   );
-  const reviewedFacts = trackFirstSeenRevisions(trackedFacts, [
+  // Set after a mutation succeeds. If the report stays pending, the next review
+  // starts from the refreshed facts instead of the pre-resolution revisions.
+  const [resetAfterResolve, setResetAfterResolve] = useState(false);
+  let tracked = trackedFacts;
+  if (resetAfterResolve) {
+    const fresh = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
+    const unchanged =
+      fresh.length === trackedFacts.length &&
+      fresh.every((f) => trackedFacts.some((t) => t.id === f.id && t.updateTime === f.updateTime));
+    if (!unchanged) {
+      tracked = fresh;
+      setTrackedFacts(fresh);
+      setResetAfterResolve(false);
+    }
+  }
+  const reviewedFacts = trackFirstSeenRevisions(tracked, [
     entry.fact,
     ...(entry.duplicateFacts ?? []),
     manualCandidate,
   ]);
-  if (reviewedFacts !== trackedFacts) {
+  if (reviewedFacts !== tracked) {
     // Render-phase state update (React's derived-state pattern), no effect needed.
     setTrackedFacts([...reviewedFacts]);
   }
@@ -225,6 +240,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
       });
     },
     onSuccess: () => {
+      setResetAfterResolve(true);
       queryClient.invalidateQueries({ queryKey: ["reports"] });
       queryClient.invalidateQueries({ queryKey: ["facts"] });
     },

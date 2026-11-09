@@ -56,7 +56,7 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
 
         // Bind the revisions the reviewer is about to see before the copilot
         // await; a refetch mid-evaluation must not rebind the review.
-        const expectedFacts = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
+        const reviewedSnapshot = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
 
         const review = await runCopilot({
           data: {
@@ -64,6 +64,12 @@ export function BulkDuplicateHub({ entries }: { entries: Entry[] }) {
             candidateFactIds: candidateFactIds.length > 0 ? candidateFactIds : undefined,
           },
         });
+        // Prefer the revisions the copilot actually read (including appended
+        // candidates); the pre-await snapshot covers anything it did not return.
+        const expectedFacts = factRevisions([
+          ...(review.evaluatedFacts ?? []),
+          ...reviewedSnapshot,
+        ]);
 
         const allCandidates: DuplicateFactCandidate[] = [
           ...(entry.fact
