@@ -356,7 +356,7 @@ describe("ReportCard post-resolution refresh", () => {
 });
 
 describe("ReportCard revision snapshot", () => {
-  it("sends the reviewed revisions even after props refresh with newer updateTimes", async () => {
+  it("follows refreshed revisions so an outside edit does not block actions until reload", async () => {
     const oldEntry = makeEntry({ fact: REV_OLD_FACT, dup: REV_OLD_DUP });
     const newEntry = makeEntry({ fact: REV_NEW_FACT, dup: REV_NEW_DUP });
 
@@ -369,8 +369,8 @@ describe("ReportCard revision snapshot", () => {
 
     expect(serverHarness.actCalls).toHaveLength(1);
     expect(serverHarness.actCalls[0]?.data["expectedFacts"]).toEqual([
-      { id: "fact_a", updateTime: REV_OLD_FACT },
-      { id: "fact_b", updateTime: REV_OLD_DUP },
+      { id: "fact_a", updateTime: REV_NEW_FACT },
+      { id: "fact_b", updateTime: REV_NEW_DUP },
     ]);
   });
 });
@@ -406,8 +406,8 @@ describe("BulkDuplicateHub revision snapshot", () => {
 
     expect(serverHarness.actCalls).toHaveLength(1);
     expect(serverHarness.actCalls[0]?.data["expectedFacts"]).toEqual([
-      { id: "fact_a", updateTime: REV_OLD_FACT },
-      { id: "fact_b", updateTime: REV_OLD_DUP },
+      { id: "fact_a", updateTime: REV_NEW_FACT },
+      { id: "fact_b", updateTime: REV_NEW_DUP },
     ]);
   });
 });

@@ -146,14 +146,20 @@ export function ReportCard({ entry }: { entry: Entry }) {
   const [trackedFacts, setTrackedFacts] = useState(() =>
     factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
   );
+  // Set after a mutation succeeds: once refreshed facts arrive, drop extras
+  // such as a manual candidate from the finished review.
+  const [resetAfterResolve, setResetAfterResolve] = useState(false);
   const shown = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
   let tracked = trackedFacts;
   const outdated = shown.some((f) =>
     trackedFacts.some((t) => t.id === f.id && t.updateTime !== f.updateTime),
   );
   if (outdated) {
-    tracked = [...shown, ...trackedFacts.filter((t) => !shown.some((f) => f.id === t.id))];
+    tracked = resetAfterResolve
+      ? shown
+      : [...shown, ...trackedFacts.filter((t) => !shown.some((f) => f.id === t.id))];
     setTrackedFacts(tracked);
+    if (resetAfterResolve) setResetAfterResolve(false);
   }
   const reviewedFacts = trackFirstSeenRevisions(tracked, [
     entry.fact,
@@ -235,6 +241,7 @@ export function ReportCard({ entry }: { entry: Entry }) {
       });
     },
     onSuccess: () => {
+      setResetAfterResolve(true);
       setManualCandidate(null);
       setManualCandidateId("");
       queryClient.invalidateQueries({ queryKey: ["reports"] });
