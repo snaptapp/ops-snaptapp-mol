@@ -406,8 +406,8 @@ describe("BulkDuplicateHub revision snapshot", () => {
 
     expect(serverHarness.actCalls).toHaveLength(1);
     expect(serverHarness.actCalls[0]?.data["expectedFacts"]).toEqual([
-      { id: "fact_a", updateTime: REV_NEW_FACT },
-      { id: "fact_b", updateTime: REV_NEW_DUP },
+      { id: "fact_a", updateTime: REV_OLD_FACT },
+      { id: "fact_b", updateTime: REV_OLD_DUP },
     ]);
   });
 });
