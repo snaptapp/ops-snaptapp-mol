@@ -138,30 +138,22 @@ export function ReportCard({ entry }: { entry: Entry }) {
   });
   const [manualCandidate, setManualCandidate] = useState<NonNullable<Entry["fact"]> | null>(null);
   const [manualCandidateId, setManualCandidateId] = useState("");
-  // Revisions of the facts as first rendered. Query refetches hand this card
-  // new props under the same key, so the mutation must bind the versions the
-  // reviewer saw, not whatever the latest props happen to carry. Candidates
-  // that appear later (a refetch adds a duplicate, or the admin looks one up
-  // manually) are captured the first time they show up.
+  // Revisions of the facts this card shows. When a refetch delivers a newer
+  // revision of a listed fact, the card re-renders with that content, so the
+  // tracked revision follows it; otherwise any outside edit would make every
+  // action fail with "Fact changed since review" until a reload. Candidates
+  // that appear later (a manual lookup) are captured when they first show up.
   const [trackedFacts, setTrackedFacts] = useState(() =>
     factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]),
   );
-  // Set after a mutation succeeds. If the report stays pending, the next review
-  // starts from the refreshed facts instead of the pre-resolution revisions.
-  const [resetAfterResolve, setResetAfterResolve] = useState(false);
+  const shown = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
   let tracked = trackedFacts;
-  if (resetAfterResolve) {
-    const fresh = factRevisions([entry.fact, ...(entry.duplicateFacts ?? [])]);
-    // Compare only the ids the props carry. A tracked manual candidate that is
-    // not listed must not trigger a reset before the refetch lands.
-    const unchanged = fresh.every((f) =>
-      trackedFacts.some((t) => t.id === f.id && t.updateTime === f.updateTime),
-    );
-    if (!unchanged) {
-      tracked = fresh;
-      setTrackedFacts(fresh);
-      setResetAfterResolve(false);
-    }
+  const outdated = shown.some((f) =>
+    trackedFacts.some((t) => t.id === f.id && t.updateTime !== f.updateTime),
+  );
+  if (outdated) {
+    tracked = [...shown, ...trackedFacts.filter((t) => !shown.some((f) => f.id === t.id))];
+    setTrackedFacts(tracked);
   }
   const reviewedFacts = trackFirstSeenRevisions(tracked, [
     entry.fact,
@@ -243,7 +235,6 @@ export function ReportCard({ entry }: { entry: Entry }) {
       });
     },
     onSuccess: () => {
-      setResetAfterResolve(true);
       setManualCandidate(null);
       setManualCandidateId("");
       queryClient.invalidateQueries({ queryKey: ["reports"] });
