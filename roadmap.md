@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [ ] Synchronize shared game artifacts from upstream and verify production freshness and automatic preview build without bypassing gates.
 - [x] Apply attached design-system controls across shared exports and dashboard navigation; restore display hierarchy while preserving mobile wrapping and existing actions.
 - [x] Expand MCP with pending-report context and guarded external evidence triage; raise batch limit to 50, generate five-tool manifest, verify source/confirmation/admin/audit safeguards and preview UI.
 - [ ] Verify new triage tools through an external OAuth client on ops.snaptapp.us — requires canonical GitHub-to-Cloudflare deployment and reconnect; no live report mutations were performed during verification.
