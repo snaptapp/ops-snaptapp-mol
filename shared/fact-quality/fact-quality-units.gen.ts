@@ -932,7 +932,18 @@ export const FACT_QUALITY_REGISTRY: FactQualityRegistry = {
     "week": {
       "aliases": [
         "weeks",
-        "week"
+        "week",
+        "chart weeks",
+        "weeks at # 1",
+        "weeks at #1",
+        "weeks at no 1",
+        "weeks at no. 1",
+        "weeks at number 1",
+        "weeks at number one",
+        "weeks in top 10",
+        "weeks in top 40",
+        "weeks on chart",
+        "weeks on the chart"
       ],
       "base": "duration",
       "factor_den": "1",

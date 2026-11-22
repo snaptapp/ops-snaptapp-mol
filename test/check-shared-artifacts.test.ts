@@ -80,6 +80,22 @@ const REQUIRED_COVERAGE = [
   "scripts/write_bank_pair.mjs",
 ];
 
+const UPSTREAM_PRODUCER_ADDITIONS = [
+  ".github/workflows/fact-foundry-produce-tavily.yml",
+  "agent-go/backfill_precompute.go",
+  "agent-go/cmd_bank_maintenance.go",
+  "agent-go/cmd_enqueue.go",
+  "agent-go/cmd_foundry.go",
+  "agent-go/crawl_queue.go",
+  "agent-go/crawl_run.go",
+  "agent-go/fact_audit_model.go",
+  "agent-go/fact_audit_run.go",
+  "agent-go/foundry_model.go",
+  "agent-go/gemini_text.go",
+  "agent-go/reverify.go",
+  "agent-go/tavily_mcp.go",
+];
+
 interface FixtureManifest {
   sourceRepository: string;
   contractVersion: number;
@@ -99,6 +115,7 @@ function fixtureSources(): Record<string, string> {
     "tests/fixtures/derivation_parity.json": FIXTURE_SOURCE,
     "agent-go/derivation.go": "package main\n",
     ...Object.fromEntries(REQUIRED_COVERAGE.map((p) => [p, `// ${p}\n`])),
+    ...Object.fromEntries(UPSTREAM_PRODUCER_ADDITIONS.map((p) => [p, `// ${p}\n`])),
   };
 }
 
@@ -266,6 +283,10 @@ describe("manifest-driven local sync", () => {
     expect(outcome.written).not.toContain("src/derivation.ts");
     expect(outcome.written).not.toContain("agent-go/derivation.go");
     expect(existsSync(path.join(adminRoot, "agent-go", "derivation.go"))).toBe(false);
+    for (const producer of UPSTREAM_PRODUCER_ADDITIONS) {
+      expect(outcome.written).not.toContain(producer);
+      expect(existsSync(path.join(adminRoot, producer))).toBe(false);
+    }
     expect(readFileSync(path.join(adminRoot, "shared", "ddm", "derivation.ts"), "utf8")).toBe(
       DDM_SOURCE,
     );
@@ -292,6 +313,28 @@ describe("manifest-driven local sync", () => {
       false,
     );
     expect(existsSync(path.join(adminRoot, "shared", "fact-lifecycle-contract.gen.ts"))).toBe(false);
+  });
+
+  it("still rejects unrecognized producer paths without writing any artifacts", () => {
+    const { adminRoot, upstreamRoot, manifest } = makeFixture();
+    const unknown = "agent-go/unrecognized_producer.go";
+    const source = "package main\n";
+    writeFileSync(path.join(upstreamRoot, unknown), source);
+    writeFileSync(
+      path.join(upstreamRoot, "shared", "artifact-manifest.gen.json"),
+      JSON.stringify({
+        ...manifest,
+        coveredSourcePaths: [...manifest.coveredSourcePaths, unknown],
+        files: { ...manifest.files, [unknown]: digest(source) },
+      }),
+    );
+
+    const outcome = sync.runSharedArtifactSync({ root: adminRoot, upstreamRoot });
+
+    expect(outcome.ok).toBe(false);
+    expect(outcome.stderr.join("\n")).toContain(`Manifest source ${unknown} has no declared Admin handoff destination`);
+    expect(outcome.written).toEqual([]);
+    expect(existsSync(path.join(adminRoot, "contract-adoption.json"))).toBe(false);
   });
 
   it("supports a dry run without modifying the worktree", () => {

@@ -384,7 +384,21 @@
       "base": "duration",
       "factor_num": "604800",
       "factor_den": "1",
-      "aliases": ["weeks", "week"]
+      "aliases": [
+        "weeks",
+        "week",
+        "chart weeks",
+        "weeks at # 1",
+        "weeks at #1",
+        "weeks at no 1",
+        "weeks at no. 1",
+        "weeks at number 1",
+        "weeks at number one",
+        "weeks in top 10",
+        "weeks in top 40",
+        "weeks on chart",
+        "weeks on the chart"
+      ]
     },
     "month": {
       "base": "duration",
