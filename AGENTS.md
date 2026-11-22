@@ -21,6 +21,7 @@
 15. **Vendored design system:** Repo scans (contract literals, variant checks) skip `src/design-system/<library>-<hash>/`, because that copy is library-owned and cannot be edited locally.
 16. **Lockfile test fixtures:** Inject read-only tracking query responses into the checker for disk fixture tests; retain real CLI fail-closed coverage and the production Git adapter, without mutating repository metadata during tests.
 17. **Shared UI:** The app entry re-exports attached design-system controls and loads its theme after legacy compatibility tokens, so existing screens use the managed components without rewriting their behavior. Keep mobile wrapping and touch accommodations, but let the attached components own typography and visual variants.
+18. **Strategist context:** Keep Daily Blitz editor snapshots in user-role reference messages outside history truncation, never in system instructions, so editor text cannot acquire instruction authority.
 
 
 ## Essential Commands

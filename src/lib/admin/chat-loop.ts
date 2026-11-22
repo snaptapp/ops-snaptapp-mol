@@ -23,12 +23,17 @@ export async function runChatLoop(input: {
   surface: ChatSurface;
   system: string;
   messages: ChatMessage[];
+  /** Request-derived reference data belongs in user content, never system instructions. */
+  userContext?: string;
   ctx: Omit<ToolContext, "surface">;
   fallbackUser: string;
 }): Promise<{ text: string; cards: ChatCard[] }> {
   const backend = await selectChatBackend();
   const tools = toolsForSurface(input.surface);
   const contents = historyToContents(input.messages, input.fallbackUser);
+  if (input.userContext) {
+    contents.unshift({ role: "user", parts: [{ text: input.userContext }] });
+  }
   const cards: ChatCard[] = [];
   const ctx: ToolContext = { ...input.ctx, surface: input.surface };
 
