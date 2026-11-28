@@ -72,7 +72,7 @@ jobs:
       # retry and the guard still run inside the 45-minute job limit.
       # Review and fix use the Fireworks connection through OpenCode Console.
       - name: Run opencode
-        uses: tonythethompson/opencode-review-threads@v1
+        uses: tonythethompson/opencode-review-threads@482b206efab7e29478620c0e6338f6d7a23a6ec0
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
